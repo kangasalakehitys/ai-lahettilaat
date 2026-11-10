@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI-lähettiläät 2027 – Kangasala</title>
+  <meta name="description" content="Kangasalan kaupungin AI-lähettiläiden koulutuskokonaisuus 2027 ja AI-tiekartan seuranta.">
+  <link rel="icon" href="assets/logo/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="./">
+        <img src="assets/logo/Kangasala_logo_RGB_color.svg" alt="Kangasala">
+        <span>AI-lähettiläät</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">Valikko</button>
+      <nav class="nav" id="nav" aria-label="Päävalikko">
+        <a href="#toiminta">Toimintamalli</a>
+        <a href="#kalenteri">Kalenteri</a>
+        <a href="#tiekartta">Tiekartta</a>
+        <a href="#lahettilaat">Lähettiläät</a>
+        <a href="tyokalu.html">Arviointityökalu</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <svg class="hero-arcs" viewBox="0 0 400 400" aria-hidden="true">
+        <g fill="none" stroke="#fff" stroke-width="34" stroke-linecap="butt">
+          <path d="M120 70 A150 150 0 0 1 280 70" />
+          <path d="M70 190 A60 60 0 0 0 170 190" />
+          <path d="M230 190 A60 60 0 0 0 330 190" />
+          <path d="M80 300 A170 170 0 0 0 320 300" />
+        </g>
+      </svg>
+      <div class="wrap">
+        <p class="eyebrow">Kangasalan kaupunki · AI-tiekartta 2027–2029</p>
+        <h1>AI-lähettiläät 2027</h1>
+        <p>Koulutuskokonaisuus kaupungin AI-lähettiläille. Opiskelemme tekoälyä yhdessä, viemme opit yksiköihin ja autamme viemään AI-tiekartan kehityskohteita eteenpäin.</p>
+        <ul class="hero-facts">
+          <li>1 h / viikko opiskelua</li>
+          <li>Ryhmä kuukauden 2. torstaina</li>
+          <li>Yksiköt mukana joka kuukausi</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="block" id="toiminta">
+      <div class="wrap">
+        <h2>Toimintamalli</h2>
+        <p class="lead">AI-lähettiläät opiskelevat avoimien ja maksullisten aineistojen avulla, jakavat tietoa omiin yksiköihinsä ja tukevat AI-kehitystä. Työ liittyy Kangasalan AI-tiekarttaan.</p>
+        <div class="cards">
+          <div class="card" style="--accent: var(--red)">
+            <div class="num">1 h</div>
+            <h3>Viikoittain: oma opiskelu</h3>
+            <p>Kuukauden teeman materiaalit: avoimet verkkokurssit, Microsoftin oppimateriaalit ja kaupungin omat koulutustallenteet.</p>
+          </div>
+          <div class="card" style="--accent: var(--navy)">
+            <div class="num">1 / kk</div>
+            <h3>Ryhmän tapaaminen</h3>
+            <p>Kuukauden 2. torstaina, enintään 1 h Teamsissa tai tarvittaessa livenä. Vaihdetaan yksiköiden palautteet ja esiin nousseet AI-asiat sekä käydään läpi tulevan kuukauden oppimisjakso.</p>
+          </div>
+          <div class="card" style="--accent: var(--cyan)">
+            <div class="num">15–30 min</div>
+            <h3>Yksikköpalaveri kerran kuussa</h3>
+            <p>Lähettiläs tuo omaan yksikköönsä esiin nousseet AI-asiat, auttaa kollegoita tekoälykysymyksissä ja tukee tiekartan kohteita.</p>
+          </div>
+          <div class="card" style="--accent: var(--green)">
+            <div class="num">ma</div>
+            <h3>Johtoryhmän seuranta</h3>
+            <p>Johtoryhmä käsittelee maanantaisin tarvittaessa ryhmän ja yksiköiden AI-nostot. Puolivuosittain (kesä- ja joulukuu) kootaan johtoryhmälle yhteenveto.</p>
+          </div>
+        </div>
+        <a class="btn alt" href="https://teams.microsoft.com/l/team/19%3AY9DjC8Q2zELMeQCmELV2wrbeb0SnWEOrzezwNRfXTZQ1%40thread.tacv2/conversations?groupId=b833edca-e284-45cf-8081-d1be89ff8e96&amp;tenantId=dde5dc12-bd3c-4c06-85cc-34361efe9ad4" target="_blank" rel="noopener">Avaa ryhmän Teams-työtila →</a>
+        <p class="note">Teams-työtila vaatii kirjautumisen Kangasalan tunnuksilla.</p>
+      </div>
+    </section>
+
+    <section class="block soft" id="kalenteri">
+      <div class="wrap">
+        <h2>Kalenteri 2027</h2>
+        <p class="lead">Kuukausittaiset oppimisjaksot ja ryhmän tapaamiset. Valitse kuukausi, niin näet teeman ja materiaalit.</p>
+        <div id="calendar"><p class="muted">Ladataan kuukausiohjelmaa…</p></div>
+      </div>
+    </section>
+
+    <section class="block soft" id="tiekartta" style="background:#efedea">
+      <div class="wrap">
+        <h2>AI-tiekartan seuranta</h2>
+        <div id="roadmap-intro"><p class="muted">Ladataan tiekarttaa…</p></div>
+
+        <h3 style="margin-top:32px">Käyttötapausten tila</h3>
+        <div class="status-strip" id="status-strip"></div>
+
+        <div class="rm-grid">
+          <div class="panel">
+            <h3>Tyypit</h3>
+            <ul class="type-list" id="type-list"></ul>
+          </div>
+          <div class="panel">
+            <h3>Vaikuttavuus</h3>
+            <div class="matrix" id="matrix"></div>
+          </div>
+        </div>
+
+        <div class="filters">
+          <label>Palvelualue<select id="f-area"></select></label>
+          <label>Tila<select id="f-status"></select></label>
+          <label>Tyyppi<select id="f-type"></select></label>
+        </div>
+        <div class="uc-list" id="uc-list"></div>
+        <p class="note">Sivulla seurataan käyttötapauksia ylätasolla. Tarkempi seuranta tehdään Teamsin Plannerissa.</p>
+      </div>
+    </section>
+
+    <section class="block" id="lahettilaat">
+      <div class="wrap">
+        <h2>AI-lähettiläät palvelualueittain</h2>
+        <div class="amb" id="ambassadors"><p class="muted">Ladataan…</p></div>
+      </div>
+    </section>
+
+    <section class="block soft" id="verkostot">
+      <div class="wrap">
+        <h2>Seuranta, verkostot ja viestintä</h2>
+        <div class="extras" id="extras"><p class="muted">Ladataan…</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <img src="assets/logo/Kangasala_logo_RGB_white.svg" alt="Kangasala">
+      <p>Kangasalan kaupunki · AI-lähettiläät · <a href="https://www.kangasala.fi/" target="_blank" rel="noopener">kangasala.fi</a></p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
