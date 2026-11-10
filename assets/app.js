@@ -87,7 +87,7 @@
     const lines = md.replace(/<!--[\s\S]*?-->/g, "").split(/\r?\n/);
     const months = {}, extras = [];
     let cur = null, curExtra = null, season = null;
-    const monthRe = new RegExp("^##\\s+(" + MONTHS.join("|") + ")\\s*[-–:]?\\s*(.*)$", "i");
+    const monthRe = new RegExp("^##\\s+(" + MONTHS.join("|") + ")[\\s\\-–:]*(.*)$", "i");
 
     lines.forEach((line) => {
       const t = line.trim();

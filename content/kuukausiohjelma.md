@@ -182,7 +182,7 @@ Lisätään myöhemmin...
 Lisätään myöhemmin...
 
 ---------------------------------------------------------
-## marraskuu- Hallintamalli (Governance), analytiikka ja laadunvalvonta
+## lokakuu- - Hallintamalli (Governance), analytiikka ja laadunvalvonta
 Keskitytään agenttien elinkaaren hallintaan, tietoturvaan ja käytön seurantaan. AI-lähettiläät keräävät palautetta loppukäyttäjiltä agenttien jatkokehitystä varten. AI-lähettiläät kokoavat yksiköiden kokemukset ja hyötyarviot loppuvuoden raportointia varten
 
 ### Materiaalia oppimista tukemaan:
@@ -193,8 +193,19 @@ Lisätään myöhemmin...
 Lisätään myöhemmin...
 
 ---------------------------------------------------------
-## joulukuu- Vuoden koonti ja joryn laajempi vuosikatsaus
-Järjestetään tapahtuma, jossa palkitaan vuoden AI-teot ja julkaistaan lähettiläiden onnistumistarinat. Joryssä esitellään koko vuoden koonti sekä katsotaan seuraavaa vuotta.
+## marraskuu- Vuoden koonti
+Järjestetään tapahtuma, jossa palkitaan vuoden AI-teot ja julkaistaan lähettiläiden onnistumistarinat.
+
+### Materiaalia oppimista tukemaan:
+#### Maksuttomat
+Lisätään myöhemmin...
+
+#### Maksulliset
+Lisätään myöhemmin...
+
+---------------------------------------------------------
+## joulukuu- joryn laajempi vuosikatsaus
+Joryssä esitellään koko vuoden koonti sekä katsotaan seuraavaa vuotta.
 
 ### Materiaalia oppimista tukemaan:
 #### Maksuttomat
