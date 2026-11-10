@@ -18,7 +18,7 @@ Tekoälytiekartan hankkeet valmistuvat alustavasti marras-joulukuun aikana.
 ## Käyttötapaukset
 <!--
 Lisää jokainen käyttötapaus omana lohkonaan alla olevan mallin mukaan (poista mallin ympäriltä kommenttimerkit).
-Tila: Idea | Arvioinnissa | Työn alla | Testauksessa | Tuotannossa | Odottaa
+Tila: Ideat / Arvioinnissa | Työn alla | Tuotannossa
 Tyyppi: Sisällöntuotanto | Tutkimus | Koodaus | Data-analyysi | Ideointi ja strategia | Automaatiot
 Vaikuttavuus: Korkea ROI(€) | Itsepalvelu | Suuri vaikutus/ työläs | Työläs/pieni merkitys
 

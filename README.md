@@ -43,7 +43,7 @@ Lisää `## Käyttötapaukset` -otsikon alle yksi lohko jokaista käyttötapaust
 - Planner: https://...
 ```
 
-- **Tila:** Idea | Arvioinnissa | Työn alla | Testauksessa | Tuotannossa | Odottaa
+- **Tila:** Ideat / Arvioinnissa | Työn alla | Tuotannossa
 - **Tyyppi:** Sisällöntuotanto | Tutkimus | Koodaus | Data-analyysi | Ideointi ja strategia | Automaatiot
 - **Vaikuttavuus:** Korkea ROI(€) | Itsepalvelu | Suuri vaikutus/ työläs | Työläs/pieni merkitys
 

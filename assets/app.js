@@ -8,13 +8,14 @@
   const BREAK_MONTHS = { 6: "Kesätauko" };          // heinäkuu
   const JORY_MONTHS = { 5: "Jory: puolivuosikatsaus", 11: "Jory: vuosikatsaus" };
 
+  // Kolme tilaa (huomiot.md). keys = hyväksytyt kirjoitusasut.
   const STATUSES = [
-    { key: "idea", label: "Idea", c: "#9a9ca5" },
-    { key: "arvioinnissa", label: "Arvioinnissa", c: "#fcb316" },
-    { key: "työn alla", label: "Työn alla", c: "#e64925" },
-    { key: "testauksessa", label: "Testauksessa", c: "#00adc5" },
-    { key: "tuotannossa", label: "Tuotannossa", c: "#009651" },
-    { key: "odottaa", label: "Odottaa", c: "#28336c" }
+    { label: "Ideat / Arvioinnissa", hint: "Uudet yksiköiden syöttämät kohteet", c: "#fcb316", dark: true,
+      keys: ["ideat", "idea", "arvioinnissa", "uusi idea"] },
+    { label: "Työn alla", hint: "Lähettiläiden tai IT:n rakentamat pilotit", c: "#e64925",
+      keys: ["työn alla", "testauksessa"] },
+    { label: "Tuotannossa", hint: "Käytössä olevat agentit, joiden hyötyjä seurataan", c: "#009651",
+      keys: ["tuotannossa"] }
   ];
   const IMPACT = [
     { key: "korkea roi", label: "Korkea ROI (€)", c: "#009651", pos: "1/2" },
@@ -249,7 +250,7 @@
     return { intro, cases };
   }
 
-  const statusOf = (s) => STATUSES.find((x) => norm(s).startsWith(x.key));
+  const statusOf = (s) => STATUSES.find((x) => x.keys.some((k) => norm(s).startsWith(k)));
   const impactOf = (s) => IMPACT.find((x) => norm(s).replace(/\s+/g, " ").startsWith(x.key));
 
   function renderRoadmap(rm) {
@@ -273,7 +274,7 @@
     const strip = $("#status-strip");
     strip.innerHTML = STATUSES.map((s) => {
       const n = cases.filter((c) => statusOf(c.status) === s).length;
-      return '<div style="--c:' + s.c + '"><b>' + n + "</b><span>" + s.label + "</span></div>";
+      return '<div style="--c:' + s.c + '"><b>' + n + "</b><span>" + esc(s.label) + "</span><small>" + esc(s.hint) + "</small></div>";
     }).join("");
 
     // tyypit
@@ -320,7 +321,7 @@
           "<h4>" + esc(c.name) + "</h4>" +
           '<div class="where">' + esc([c.area, c.unit].filter(Boolean).join(" · ")) + "</div>" +
           '<div class="tags">' +
-          (c.status ? '<span class="chip" style="background:' + (st ? st.c : "#eee") + ';color:' + (st && st.key === "arvioinnissa" ? "#1d1d1f" : (st ? "#fff" : "#1d1d1f")) + '">' + esc(c.status) + "</span>" : "") +
+          (c.status ? '<span class="chip" style="background:' + (st ? st.c : "#eee") + ';color:' + (st && !st.dark ? "#fff" : "#1d1d1f") + '">' + esc(c.status) + "</span>" : "") +
           (c.type ? '<span class="chip">' + esc(c.type) + "</span>" : "") +
           (c.impact ? '<span class="chip" style="border:1px solid ' + (im ? im.c : "#ccc") + '">' + esc(c.impact) + "</span>" : "") +
           "</div>" +
