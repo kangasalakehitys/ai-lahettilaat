@@ -10,11 +10,11 @@
 
   // Kolme tilaa (huomiot.md). keys = hyväksytyt kirjoitusasut.
   const STATUSES = [
-    { label: "Ideat / Arvioinnissa", hint: "Uudet yksiköiden syöttämät kohteet", c: "#fcb316", dark: true,
+    { label: "Ideat / Arvioinnissa", c: "#fcb316", dark: true,
       keys: ["ideat", "idea", "arvioinnissa", "uusi idea"] },
-    { label: "Työn alla", hint: "Lähettiläiden tai IT:n rakentamat pilotit", c: "#e64925",
+    { label: "Työn alla", c: "#e64925",
       keys: ["työn alla", "testauksessa"] },
-    { label: "Tuotannossa", hint: "Käytössä olevat agentit, joiden hyötyjä seurataan", c: "#009651",
+    { label: "Tuotannossa", c: "#009651",
       keys: ["tuotannossa"] }
   ];
   const IMPACT = [
@@ -274,7 +274,7 @@
     const strip = $("#status-strip");
     strip.innerHTML = STATUSES.map((s) => {
       const n = cases.filter((c) => statusOf(c.status) === s).length;
-      return '<div style="--c:' + s.c + '"><b>' + n + "</b><span>" + esc(s.label) + "</span><small>" + esc(s.hint) + "</small></div>";
+      return '<div style="--c:' + s.c + '"><b>' + n + "</b><span>" + esc(s.label) + "</span></div>";
     }).join("");
 
     // tyypit

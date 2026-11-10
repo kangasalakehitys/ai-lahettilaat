@@ -29,7 +29,6 @@ Tietosuoja ja AI
 Suositellut lisämateriaalit: agenttien perusteet
 [Scale how you work by creating AI agents (Microsoft Learn)](https://learn.microsoft.com/en-us/training/modules/scale-work-creating-ai-agents/)
 [Write effective prompts to achieve optimal results (Microsoft Learn)](https://learn.microsoft.com/en-us/training/modules/write-effective-prompts-do-more-prompting)
-[Agent Builder – yhden sivun yleiskuva (Microsoft Adoption, PDF)](https://adoption.microsoft.com/files/copilot/AgentBuilderOverviewOnePager.pdf)
 
 #### Maksulliset
 Lisätään myöhemmin...
@@ -106,11 +105,6 @@ Tietosuoja ja AI
 
 
 Copilot ja agentit - edistyneempi käyttö
-
-Suositellut lisämateriaalit: tekoäly kunnissa
-[Kunta-Kati – kuntien yhteinen keskusteleva tekoäly (Kuntaliitto, PDF)](https://www.kuntaliitto.fi/sites/default/files/media/file/Kuntamarkkinat_KuntaKati_esitys.pdf)
-[Tekoäly tukiälynä pienen kunnan viestinnässä (Kuntaliitto, PDF)](https://www.kuntaliitto.fi/sites/default/files/media/file/Teko%C3%A4ly%20tuki%C3%A4lyn%C3%A4%20pienen%20kunnan%20viestinn%C3%A4ss%C3%A4.pdf)
-[Julkisen hallinnon tekoälymuutos – kokemuksia ja tilannekuva](https://www.tekoalymuutos.fi/)
 
 #### Maksulliset
 Lisätään myöhemmin...
