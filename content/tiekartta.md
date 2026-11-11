@@ -1,4 +1,4 @@
-# Kangasalan kaupungin tekoälytiekartta ohjaa tekoälyn, automaation ja tiedolla johtamisen suunnitelmallista hyödyntämistä kaupungin palveluissa ja sisäisessä toiminnassa vuosina 2027–2029.
+# Kangasalan kaupungin tekoälytiekartta ohjaa tekoälyn, automaation ja tiedolla johtamisen suunnitelmallista hyödyntämistä kaupungin palveluissa ja sisäisessä toiminnassa.
 
 Tiekartan tavoitteena on tunnistaa ja toteuttaa ratkaisuja ja käyttötapauksia, jotka:
 

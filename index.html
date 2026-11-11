@@ -95,6 +95,31 @@
         <h2>AI-tiekartan seuranta</h2>
         <div id="roadmap-intro"><p class="muted">Ladataan tiekarttaa…</p></div>
 
+        <div class="panel rm-upload">
+          <div class="rm-upload-head">
+            <div>
+              <h3>Käyttötapaussalkun tilannekuva</h3>
+              <p class="muted">Lataa arviointityökalusta tallennetut käyttötapaukset (JSON). Voit valita useita tiedostoja kerralla. Tiedostot luetaan vain tähän selaimeen eikä niitä julkaista. Lataa uusimmat tiedostot, niin näkymä päivittyy. Saman kuukauden uusi lataus korvaa kuukauden tilannekuvan.</p>
+            </div>
+            <div class="rm-upload-btns">
+              <button type="button" class="btn alt" id="rm-pick">Lataa käyttötapaukset (JSON)</button>
+              <button type="button" class="btn-plain" id="rm-clear" hidden>Tyhjennä ladatut tiedot</button>
+              <input type="file" id="rm-file" accept=".json,application/json" multiple hidden>
+            </div>
+          </div>
+          <p class="rm-status" id="rm-status" aria-live="polite"></p>
+          <p class="rm-msg" id="rm-msg" role="status"></p>
+        </div>
+
+        <div class="panel rm-monthly" id="rm-monthly" hidden>
+          <div class="rm-month-head">
+            <h3>Kuukausittainen tilannekuva</h3>
+            <label>Tilanne kuukaudelta <select id="rm-month"></select></label>
+          </div>
+          <div id="rm-chart"></div>
+          <div class="rm-tablewrap" id="rm-table"></div>
+        </div>
+
         <h3 style="margin-top:32px">Käyttötapausten tila</h3>
         <div class="status-strip" id="status-strip"></div>
 
@@ -142,6 +167,7 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="assets/ai-arviointi/ai-arviointi.js"></script>
   <script src="assets/app.js"></script>
 </body>
 </html>

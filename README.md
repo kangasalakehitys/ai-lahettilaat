@@ -52,6 +52,15 @@ Arviointityökalun *Kopioi tiekarttalohkona* -painike tekee valmiin lohkon täh�
 
 `<!-- ... -->`-merkkien välissä oleva teksti ei näy sivulla.
 
+## Tiekartan seuranta: käyttötapausten lataus (JSON)
+
+Etusivun *AI-tiekartan seuranta* -osioon voi ladata arviointityökalusta tallennetut JSON-tiedostot (yksi tai useampi kerralla). Sivu näyttää niistä käyttötapaussalkun tilan, tyypit, vaikuttavuuden ja kortit sekä kuukausittaisen tilannekuvan (pinottu pylväs tiloittain ja taulukko: käyttötapauksia, uusia, tuotannossa, keskimääräinen prioriteetti, jory-huomioita).
+
+- Tiedostot luetaan vain katsojan selaimeen (localStorage), niitä ei julkaista sivustolle.
+- Kuukausi määräytyy tiedoston vientipäivästä (`exported`); jos sitä ei ole, käytetään latauspäivää. Saman kuukauden uusi lataus korvaa kuukauden tilannekuvan.
+- Omistajaa ei näytetä eikä tallenneta.
+- `content/tiekartta.md`:n `## Käyttötapaukset`-lohkot näkyvät edelleen ladattujen rinnalla.
+
 ## Arviointityökalu
 
 Työkalu on oma komponenttinsa kansiossa `assets/ai-arviointi/` (`ai-arviointi.js` ja `ai-arviointi.css`), joten sen voi liittää myös muille sivuille:
