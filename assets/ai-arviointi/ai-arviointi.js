@@ -615,7 +615,13 @@
         '<option value="">' + (list.length ? "Valitse…" : "Ei tallennettuja") + "</option>" +
         list.map((c) => '<option value="' + esc(c.id) + '"' + (c.id === S.draft.id ? " selected" : "") + ">" + esc((c.name || "(nimetön)") + " · " + fiDate(new Date(c.updated))) + "</option>").join("") +
         "</select></label>" +
-        '<div class="aia-openbar-btns">' + btn("import-one", "Tuo arviointi (JSON)", "ghost") + btn("new", "Uusi arviointi", "ghost") + "</div>";
+        '<div class="aia-openbar-btns">' + btn("import-one", "Tuo arviointi (JSON)", "ghost") + btn("new", "Uusi arviointi", "ghost") +
+        btn("clear-all", "Tyhjennä arvioinnit", "ghost danger", ' title="Poistaa kaikki tallennetut arvioinnit tästä selaimesta"' + (canClear() ? "" : " disabled")) + "</div>";
+    }
+    // Onko tyhjennettävää: tallennettuja arviointeja tai täytetty lomake.
+    function canClear() {
+      const c = S.draft;
+      return S.cases.length > 0 || S.dirty || !!(c && (c.name || c.center || c.owner || c.problem || c.aiHelp || c.privacy));
     }
     function refreshOpenBar() { const el = panel("arvioi").querySelector("[data-openbar]"); if (el) el.innerHTML = openBarHtml(); }
 
@@ -818,6 +824,7 @@
       const b = pnl.querySelector("[data-savebtn]"); if (b) b.textContent = saved ? "Tallenna muutokset" : "Tallenna arviointi";
       const bn = pnl.querySelector("[data-savenew]"); if (bn) bn.hidden = !saved;
       const bi = pnl.querySelector("[data-savenewinfo]"); if (bi) bi.hidden = !saved;
+      const ca = pnl.querySelector('[data-act="clear-all"]'); if (ca) ca.disabled = !canClear();
       let cls = "", t = "";
       if (u.saveErr) { cls = "error"; t = u.saveErr; }
       else if (u.saveWarn) { cls = "warn"; t = u.saveWarn; }
@@ -1529,6 +1536,18 @@
       const find = () => S.cases.find((c) => c.id === id);
       switch (act) {
         case "goto-arvioi": showTab("arvioi"); break;
+        case "clear-all": {
+          const n = S.cases.length;
+          if (!global.confirm("Poistetaanko kaikki " + n + " tallennettua arviointia ja avoin luonnos tästä selaimesta? Toimintoa ei voi perua.\n\n" +
+            "Jos haluat säilyttää ne, lataa ensin JSON-varmuuskopio (Omat arvioinnit → Lataa omat arvioinnit koneelle JSON-muodossa).\n\nParametrit säilyvät.")) break;
+          S.cases = []; S.sel = null;
+          const ok = saveCases(); db.set("sel", null);
+          S.draft = newCase(); S.dirty = false; S.step = 2; S.reached = 2;
+          S.ui.lastSaved = null; S.ui.saveWarn = ""; S.ui.saveErr = "";
+          saveDraft(); updateCount(); renderEval();
+          msg(ok ? "Arvioinnit tyhjennetty. Voit aloittaa uuden arvioinnin." : "Arvioinnit tyhjennetty tältä sivulta, mutta selain esti tallennuksen.", ok ? "ok" : "warn");
+          break;
+        }
         case "wprev": goStep(S.step - 1); break;
         case "wnext": goStep(S.step + 1); break;
         case "goto-omat": showTab("omat"); break;

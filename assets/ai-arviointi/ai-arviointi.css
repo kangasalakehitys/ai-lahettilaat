@@ -141,6 +141,8 @@
 .aia-btn.ghost:hover { border-color: var(--aia-ink); background: var(--aia-bg); }
 .aia-btn.small { min-height: 34px; padding: 4px 12px; font-size: .85rem; }
 .aia-btn.danger:hover { border-color: var(--aia-red); color: var(--aia-red-dark); }
+.aia-btn:disabled { opacity: .45; cursor: not-allowed; }
+.aia-btn:disabled:hover { background: var(--aia-bg); border-color: var(--aia-line); color: var(--aia-ink); }
 .aia-link { background: none; border: 0; padding: 0; color: var(--aia-red-dark); text-decoration: underline; cursor: pointer; font-weight: 700; }
 .aia-export { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 12px 0; }
 .aia-export > span { font-weight: 700; font-size: .88rem; color: var(--aia-muted); margin-right: 2px; }
