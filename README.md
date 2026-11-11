@@ -48,7 +48,7 @@ Lisää `## Käyttötapaukset` -otsikon alle yksi lohko jokaista käyttötapaust
 - **Vaikuttavuus:** Korkea ROI (€) | Suuri vaikutus / suuri työmäärä | Itsepalvelu | Suuri työmäärä / pieni merkitys
 - Valinnaiset: **Tietosuoja** (Vihreä | Keltainen | Punainen), **Jory** (Kyllä | Ei), **Prioriteetti** (0–100), **Kuvaus**
 
-Arviointityökalun *Kopioi tiekarttalohkona* -painike tekee valmiin lohkon tähän muotoon.
+Arviointityökalun *Kopioi tiekarttalohkona* -painike tekee valmiin lohkon tähän muotoon (piilotettu Kangasalan sivulla, ks. `hidden` alla).
 
 `<!-- ... -->`-merkkien välissä oleva teksti ei näy sivulla.
 
@@ -68,7 +68,7 @@ Työkalu on oma komponenttinsa kansiossa `assets/ai-arviointi/` (`ai-arviointi.j
 - **Parametrit** (kriteerit, painot, nelikentän rajat, riskivähennykset, työtunnin arvo) ladataan ja tuodaan omana JSON-tiedostonaan. Kriteerejä voi olla enintään 15. Uuden kriteerin saa lisäämällä tiedoston `criteria`-listaan rivin, jossa on `id`, `group` (`hyoty`, `toteutus` tai `riski`), `name`, `help`, `lo`, `hi` ja `weight` (0–3).
 - *Vertailu ja simulointi* -välilehdellä painotuksia voi kokeilla ja tallentaa skenaarioiksi.
 - `mount`-asetuksilla voi vaihtaa mm. palvelukeskukset/osastot ja yksiköt (`centers`), tilat (`statuses`), tyypit ja niiden ohjetekstit (`types`, `typeInfo`) ja oletusparametrit (`params`).
-- `hidden: ["status", "jory"]` piilottaa Tila- ja Jory-huomio-kentät. Kangasalan sivulla ne ovat toistaiseksi piilossa (`tyokalu.html`); ota käyttöön poistamalla ne listasta.
+- `hidden` piilottaa osia: `"status"` (Tila), `"jory"` (Jory-huomio) ja `"roadmapBlock"` (*Kopioi tiekarttalohkona*). Kangasalan sivulla (`tyokalu.html`) piilossa on vain tiekarttalohko-painike.
 - Pakolliset tiedot: nimi, palvelukeskus/osasto, yksikkö (jos palvelukeskuksella on yksiköitä), ongelma ja tavoite, miten tekoäly auttaa sekä tietosuojataso. Palvelukeskukselle ja yksikölle voi valita *Muu* ja kirjoittaa oman nimen.
 
 ## Esikatselu omalla koneella

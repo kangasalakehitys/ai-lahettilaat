@@ -7,7 +7,8 @@
  *    <script>AIArviointi.mount(document.getElementById("ai-arviointi"), { storageKey: "oma-sivu" });</script>
  *
  *  Asetukset (kaikki valinnaisia): storageKey, centers, statuses, types, typeInfo, hidden, params,
- *  pptxUrl, font, org, title. hidden: ["status", "jory"] piilottaa Tila- ja Jory-kentät.
+ *  pptxUrl, font, org, title. hidden: ["status", "jory", "roadmapBlock"] piilottaa Tila- ja Jory-kentät
+ *  sekä "Kopioi tiekarttalohkona" -painikkeen.
  *  Tiedot tallentuvat vain käyttäjän selaimeen. Jakaminen tapahtuu vientitiedostoilla (PDF, PPTX, CSV, JSON).
  */
 (function (global) {
@@ -623,7 +624,7 @@
       h += '<aside class="aia-result" aria-label="Tulos"><div data-result></div>' +
         '<div class="aia-actions">' + btn("save", "Tallenna arviointi", "primary", " data-savebtn") +
         btn("save-new", "Tallenna uutena", "", " data-savenew hidden") +
-        btn("copy-block", "Kopioi tiekarttalohkona", "", ' title="Valmis lohko content/tiekartta.md-tiedostoon"') + "</div>" +
+        (hide("roadmapBlock") ? "" : btn("copy-block", "Kopioi tiekarttalohkona", "", ' title="Valmis lohko content/tiekartta.md-tiedostoon"')) + "</div>" +
         '<p class="aia-savestate" data-savestate role="status" aria-live="polite"></p>' +
         exportBtns("one") + '<div data-block></div></aside></div>';
       panel("arvioi").innerHTML = h;

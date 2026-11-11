@@ -12,6 +12,6 @@ Tallenna arviointi. Voit avata sen myöhemmin uudelleen, muokata ja tallentaa mu
 
 *Yhteenveto*-välilehdellä vertaat enintään neljää käyttötapausta nelikentässä, tutkakaaviossa ja rinnakkain. *Vertailu ja simulointi* -välilehdellä voit kokeilla, miten eri painotukset muuttavat järjestystä.
 
-**Tiedot pysyvät omassa selaimessasi.** Mitään ei lähetetä minnekään. Vie tulokset PDF-, PowerPoint-, CSV- tai JSON-tiedostona ja jaa ne Teamsissa tai projektiseurannassa. AI-lähettiläs voi tuoda yksiköiden JSON-tiedostot yhteen. *Kopioi tiekarttalohkona* -painike tekee valmiin tekstin AI-tiekartan päivitykseen.
+**Tiedot pysyvät omassa selaimessasi.** Mitään ei lähetetä minnekään. Vie tulokset PDF-, PowerPoint-, CSV- tai JSON-tiedostona ja jaa ne Teamsissa tai projektiseurannassa. AI-lähettiläs voi tuoda yksiköiden JSON-tiedostot yhteen.
 
 Arvioinnin säännöt (kriteerit, painot ja rajat) ovat *Parametrit*-välilehdellä. Ne voi ladata ja jakaa JSON-tiedostona, jotta kaikki arvioivat samoilla säännöillä.
