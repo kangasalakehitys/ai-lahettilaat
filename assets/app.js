@@ -8,21 +8,22 @@
   const BREAK_MONTHS = { 6: "Kesätauko" };          // heinäkuu
   const JORY_MONTHS = { 5: "Jory: puolivuosikatsaus", 11: "Jory: vuosikatsaus" };
 
-  // Kolme tilaa (huomiot.md). keys = hyväksytyt kirjoitusasut.
+  // Kuusi tilaa (huom2.txt), samat kuin arviointityökalussa. keys = hyväksytyt kirjoitusasut.
   const STATUSES = [
-    { label: "Ideat / Arvioinnissa", c: "#fcb316", dark: true,
-      keys: ["ideat", "idea", "arvioinnissa", "uusi idea"] },
-    { label: "Työn alla", c: "#e64925",
-      keys: ["työn alla", "testauksessa"] },
-    { label: "Tuotannossa", c: "#009651",
-      keys: ["tuotannossa"] }
+    { label: "Ideat", c: "#00adc5", keys: ["ideat", "idea", "uusi idea"] },
+    { label: "Arvioinnissa", c: "#fcb316", dark: true, keys: ["arvioinnissa"] },
+    { label: "Työn alla", c: "#e64925", keys: ["työn alla"] },
+    { label: "Testauksessa", c: "#28336c", keys: ["testauksessa"] },
+    { label: "Tuotannossa", c: "#009651", keys: ["tuotannossa"] },
+    { label: "Hylätty / Odottaa", c: "#8a8c94", keys: ["hylätty", "odottaa"] }
   ];
   const IMPACT = [
-    { key: "korkea roi", label: "Korkea ROI (€)", c: "#009651", pos: "1/2" },
-    { key: "suuri vaikutus", label: "Suuri vaikutus / työläs", c: "#00adc5", pos: "1/3" },
-    { key: "itsepalvelu", label: "Itsepalvelu", c: "#fcb316", pos: "2/2" },
-    { key: "työläs", label: "Työläs / pieni merkitys", c: "#e64925", pos: "2/3" }
+    { keys: ["korkea roi"], label: "Korkea ROI (€)", c: "#009651", pos: "1/2" },
+    { keys: ["suuri vaikutus"], label: "Suuri vaikutus / suuri työmäärä", c: "#00adc5", pos: "1/3" },
+    { keys: ["itsepalvelu"], label: "Itsepalvelu", c: "#fcb316", pos: "2/2", dark: true },
+    { keys: ["suuri työmäärä", "työläs"], label: "Suuri työmäärä / pieni merkitys", c: "#e64925", pos: "2/3" }
   ];
+  const PRIVACY = { "vihreä": "#009651", "keltainen": "#fcb316", "punainen": "#de232f" };
   const BAR_COLORS = ["#de232f", "#28336c", "#00adc5", "#009651", "#e64925", "#fcb316"];
 
   const $ = (s, el) => (el || document).querySelector(s);
@@ -243,7 +244,9 @@
           name: name || "(nimetön käyttötapaus)",
           area: f["palvelualue"] || "", unit: f["yksikkö"] || "",
           status: st ? st.label : (f["tila"] || ""), type: f["tyyppi"] || "",
-          impact: f["vaikuttavuus"] || "", planner: f["planner"] || "", desc: f["kuvaus"] || ""
+          impact: f["vaikuttavuus"] || "", planner: f["planner"] || "", desc: f["kuvaus"] || "",
+          privacy: f["tietosuoja"] || "", jory: /^(kyllä|kylla|k|x|true)$/i.test(f["jory"] || f["jory-huomio"] || ""),
+          prio: f["prioriteetti"] || ""
         });
       });
     }
@@ -251,7 +254,7 @@
   }
 
   const statusOf = (s) => STATUSES.find((x) => x.keys.some((k) => norm(s).startsWith(k)));
-  const impactOf = (s) => IMPACT.find((x) => norm(s).replace(/\s+/g, " ").startsWith(x.key));
+  const impactOf = (s) => IMPACT.find((x) => x.keys.some((k) => norm(s).replace(/\s+/g, " ").startsWith(k)));
 
   function renderRoadmap(rm) {
     const introEl = $("#roadmap-intro");
@@ -292,7 +295,7 @@
     IMPACT.forEach((im) => {
       const [r, c] = im.pos.split("/");
       const n = cases.filter((x) => impactOf(x.impact) === im).length;
-      mh += '<div class="cell" style="grid-row:' + r + ";grid-column:" + c + ";background:" + im.c + (im.key === "itsepalvelu" ? ";color:#1d1d1f" : "") + '"><b>' + n + "</b><span>" + esc(im.label) + "</span></div>";
+      mh += '<div class="cell" style="grid-row:' + r + ";grid-column:" + c + ";background:" + im.c + (im.dark ? ";color:#1d1d1f" : "") + '"><b>' + n + "</b><span>" + esc(im.label) + "</span></div>";
     });
     mh += '<div class="ax-x">Työmäärä →</div>';
     mx.innerHTML = mh;
@@ -324,6 +327,9 @@
           (c.status ? '<span class="chip" style="background:' + (st ? st.c : "#eee") + ';color:' + (st && !st.dark ? "#fff" : "#1d1d1f") + '">' + esc(c.status) + "</span>" : "") +
           (c.type ? '<span class="chip">' + esc(c.type) + "</span>" : "") +
           (c.impact ? '<span class="chip" style="border:1px solid ' + (im ? im.c : "#ccc") + '">' + esc(c.impact) + "</span>" : "") +
+          (c.privacy ? '<span class="chip"><i class="dot" style="background:' + (PRIVACY[norm(c.privacy)] || "#ccc") + '"></i>Tietosuoja: ' + esc(c.privacy) + "</span>" : "") +
+          (c.jory ? '<span class="chip jory">Jory</span>' : "") +
+          (c.prio ? '<span class="chip">Prioriteetti ' + esc(c.prio) + "</span>" : "") +
           "</div>" +
           (c.desc ? "<p style=\"font-size:.92rem;margin:0 0 6px\">" + inline(c.desc) + "</p>" : "") +
           (/^https?:\/\//i.test(c.planner) ? linkHtml("Avaa Plannerissa", c.planner) : "") +
@@ -367,8 +373,7 @@
     try {
       const md = (await getText("content/tyokalu.md")).trim();
       if (!md) {
-        el.innerHTML = "<h1>Hankkeiden arviointityökalu</h1><p class=\"lead\">Työkalun kuvaus lisätään myöhemmin.</p>" +
-          '<p class="muted">Kuvaus päivittyy tälle sivulle automaattisesti, kun tiedostoon <code>content/tyokalu.md</code> lisätään sisältö.</p>';
+        el.innerHTML = "<h1>AI-käyttötapausten arviointityökalu</h1>";
         return;
       }
       el.innerHTML = window.marked ? marked.parse(md) : "<pre>" + esc(md) + "</pre>";

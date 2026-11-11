@@ -12,7 +12,7 @@ Sivusto lukee sisällön suoraan `content/`-kansion tiedostoista. Muokkaa tiedos
 |---|---|
 | `content/kuukausiohjelma.md` | Kuukausien teemat, kuvaukset ja materiaalit (kalenteri) sekä alaosan linkit |
 | `content/tiekartta.md` | Tiekartan johdanto ja tavoitteet sekä `## Käyttötapaukset` |
-| `content/tyokalu.md` | Arviointityökalun kuvaus (Arviointityökalu-sivu) |
+| `content/tyokalu.md` | Arviointityökalun esittelyteksti (näkyy työkalun yläpuolella) |
 | `content/lahettilaat.xlsx` | Lähettiläät: yksi rivi per lähettiläs, sarakkeessa A palvelualue (otsikkorivi "Palvelualue"). Sivu näyttää määrät palvelualueittain. Pidä tiedostossa vain sarake A, koska tiedosto on julkisesti ladattavissa. |
 
 ### Kuukausiohjelma
@@ -43,11 +43,31 @@ Lisää `## Käyttötapaukset` -otsikon alle yksi lohko jokaista käyttötapaust
 - Planner: https://...
 ```
 
-- **Tila:** Ideat / Arvioinnissa | Työn alla | Tuotannossa
+- **Tila:** Ideat | Arvioinnissa | Työn alla | Testauksessa | Tuotannossa | Hylätty / Odottaa
 - **Tyyppi:** Sisällöntuotanto | Tutkimus | Koodaus | Data-analyysi | Ideointi ja strategia | Automaatiot
-- **Vaikuttavuus:** Korkea ROI(€) | Itsepalvelu | Suuri vaikutus/ työläs | Työläs/pieni merkitys
+- **Vaikuttavuus:** Korkea ROI (€) | Suuri vaikutus / suuri työmäärä | Itsepalvelu | Suuri työmäärä / pieni merkitys
+- Valinnaiset: **Tietosuoja** (Vihreä | Keltainen | Punainen), **Jory** (Kyllä | Ei), **Prioriteetti** (0–100), **Kuvaus**
+
+Arviointityökalun *Kopioi tiekarttalohkona* -painike tekee valmiin lohkon tähän muotoon.
 
 `<!-- ... -->`-merkkien välissä oleva teksti ei näy sivulla.
+
+## Arviointityökalu
+
+Työkalu on oma komponenttinsa kansiossa `assets/ai-arviointi/` (`ai-arviointi.js` ja `ai-arviointi.css`), joten sen voi liittää myös muille sivuille:
+
+```html
+<link rel="stylesheet" href="ai-arviointi.css">
+<div id="ai-arviointi"></div>
+<script src="ai-arviointi.js"></script>
+<script>AIArviointi.mount(document.getElementById("ai-arviointi"), { storageKey: "oma-sivu" });</script>
+```
+
+- Arvioinnit tallentuvat vain käyttäjän omaan selaimeen. Mitään ei lähetetä palvelimelle.
+- Tulokset viedään PDF-, PowerPoint-, CSV- (Excel, Microsoft Lists) tai JSON-muodossa. JSON-tiedoston voi tuoda takaisin, joten AI-lähettiläs voi koota yksiköiden arvioinnit yhteen.
+- **Parametrit** (kriteerit, painot, nelikentän rajat, riskivähennykset, työtunnin arvo) ladataan ja tuodaan omana JSON-tiedostonaan. Kriteerejä voi olla enintään 15. Uuden kriteerin saa lisäämällä tiedoston `criteria`-listaan rivin, jossa on `id`, `group` (`hyoty`, `toteutus` tai `riski`), `name`, `help`, `lo`, `hi` ja `weight` (0–3).
+- *Vertailu ja simulointi* -välilehdellä painotuksia voi kokeilla ja tallentaa skenaarioiksi.
+- `mount`-asetuksilla voi vaihtaa mm. palvelukeskukset ja yksiköt (`centers`), tilat (`statuses`), tyypit (`types`) ja oletusparametrit (`params`).
 
 ## Esikatselu omalla koneella
 
