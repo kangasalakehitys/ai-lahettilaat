@@ -4,11 +4,13 @@ Työkalulla yksiköt ja AI-lähettiläät arvioivat tekoälyn käyttötapauksia 
 
 **Näin arvioit**
 
-1. **Perustiedot:** nimeä käyttötapaus konkreettisesti, valitse palvelukeskus ja yksikkö, kuvaa ongelma ja valitse tietosuojataso.
-2. **Arviointi:** siirrä 14 liukusäädintä neljästä näkökulmasta: hyödyt toiminnassa, toteutettavuus ja kustannukset sekä riskit ja vastuullisuus. Merkitse ★:llä kolme tärkeintä kriteeriä.
+1. **Perustiedot:** nimeä käyttötapaus konkreettisesti, valitse palvelukeskus/osasto ja yksikkö (tai kirjoita oma nimi), kuvaa ongelma ja valitse tietosuojataso. Tähdellä (*) merkityt tiedot ovat pakollisia.
+2. **Arviointi:** valitse 14 kriteerille arvo 1–5 kolmesta näkökulmasta: hyödyt toiminnassa, toteutettavuus ja kustannukset sekä riskit ja vastuullisuus. Merkitse ★:llä enintään kolme tärkeintä kriteeriä.
 3. **Tulos:** näet prioriteettipisteet, sijainnin nelikentässä (vaikutus ja työmäärä) ja suosituksen jatkosta.
 
-Tallenna arviointi ja vertaile useita käyttötapauksia *Vertailu ja simulointi* -välilehdellä. Siellä voit myös kokeilla, miten eri painotukset muuttavat järjestystä.
+Tallenna arviointi. Voit avata sen myöhemmin uudelleen, muokata ja tallentaa muutokset. Aiemmin ladatun JSON-tiedoston saat takaisin *Tuo arviointi (JSON)* -painikkeella.
+
+*Yhteenveto*-välilehdellä vertaat enintään neljää käyttötapausta nelikentässä, tutkakaaviossa ja rinnakkain. *Vertailu ja simulointi* -välilehdellä voit kokeilla, miten eri painotukset muuttavat järjestystä.
 
 **Tiedot pysyvät omassa selaimessasi.** Mitään ei lähetetä minnekään. Vie tulokset PDF-, PowerPoint-, CSV- tai JSON-tiedostona ja jaa ne Teamsissa tai projektiseurannassa. AI-lähettiläs voi tuoda yksiköiden JSON-tiedostot yhteen. *Kopioi tiekarttalohkona* -painike tekee valmiin tekstin AI-tiekartan päivitykseen.
 

@@ -177,8 +177,8 @@
 .aia-sim output { font-size: .82rem; font-weight: 700; color: var(--aia-navy); white-space: nowrap; }
 .aia-rank-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; align-items: center; margin-bottom: 10px; }
 .aia-rank-head h3 { margin: 0; }
-.aia-small-sel { display: flex; align-items: center; gap: 6px; font-size: .9rem; }
-.aia-small-sel select { width: auto; min-height: 36px; padding: 4px 8px; }
+.aia-small-sel { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .9rem; max-width: 100%; min-width: 0; }
+.aia-small-sel select { width: auto; max-width: 100%; min-width: 0; min-height: 36px; padding: 4px 8px; }
 .aia-tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .aia-table { border-collapse: collapse; width: 100%; font-size: .9rem; }
 .aia-table th, .aia-table td { border-bottom: 1px solid var(--aia-line); padding: 8px; text-align: left; vertical-align: top; }
@@ -207,6 +207,75 @@
 .aia-formula { margin-top: 8px; font-size: .9rem; }
 .aia-formula summary { cursor: pointer; font-weight: 700; color: var(--aia-navy); }
 .aia-formula li { margin: 4px 0; }
+
+/* Avaa / tuo -palkki */
+.aia-openbar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-end; background: var(--aia-soft); border-radius: var(--aia-radius); padding: 12px 16px; margin-bottom: 16px; }
+.aia-openbar-sel { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; font-weight: 700; flex: 1 1 260px; min-width: 0; }
+.aia-openbar-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Pakolliset kentät ja validointi */
+.aia-req { color: var(--aia-red); font-weight: 700; }
+.aia-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.aia-reqnote { float: right; font-size: .85rem; }
+.aia .aia-invalid { border-color: var(--aia-red) !important; box-shadow: 0 0 0 2px #fde4e5; }
+.aia-privacy.aia-invalid { box-shadow: none; outline: 2px solid var(--aia-red); outline-offset: 4px; border-radius: 10px; }
+.aia-counter { align-self: flex-end; font-size: .78rem; color: var(--aia-muted); margin-top: 2px; }
+.aia .aia-other { margin-top: 6px; }
+.aia-savestate { margin: 8px 0 0; font-size: .9rem; font-weight: 700; min-height: 1.4em; }
+.aia-savestate.ok { color: #00653a; }
+.aia-savestate.dirty { color: var(--aia-orange); }
+.aia-savestate.warn { color: #6b4a00; background: #fff1cf; border-radius: 8px; padding: 6px 10px; }
+.aia-savestate.error { color: var(--aia-red-dark); background: #fde4e5; border-radius: 8px; padding: 6px 10px; }
+
+/* Tyyppien info */
+.aia-lblrow { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.aia-lblrow .aia-lbl { margin: 0; }
+.aia-info { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--aia-navy); background: var(--aia-bg); color: var(--aia-navy); font-weight: 700; cursor: pointer; line-height: 1; padding: 0; font-size: .85rem; }
+.aia-info:hover { background: var(--aia-navy); color: #fff; }
+.aia-dialog { border: 0; border-radius: var(--aia-radius); padding: clamp(16px, 4vw, 28px); max-width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow-y: auto; color: var(--aia-ink); box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+.aia-dialog::backdrop { background: rgba(29,29,31,.45); }
+.aia-dlg-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.aia-dlg-head h3 { margin: 0; color: var(--aia-red); }
+.aia-dlg-x { border: 0; background: var(--aia-soft); border-radius: 50%; width: 36px; height: 36px; font-size: 1.4rem; cursor: pointer; line-height: 1; }
+.aia-types { margin: 12px 0; }
+.aia-types > div { border-top: 1px solid var(--aia-line); padding: 12px 0; }
+.aia-types dt { font-weight: 700; color: var(--aia-navy); }
+.aia-types dd { margin: 2px 0 0; font-size: .93rem; }
+.aia-types ul { margin: 6px 0 8px; padding-left: 1.2em; color: var(--aia-muted); }
+
+/* 1–5 askeleet */
+.aia-scale { margin-top: 2px; }
+.aia-steps { display: flex; justify-content: space-between; margin: 2px -6px 4px; }
+.aia-steps button {
+  width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--aia-line); background: var(--aia-bg);
+  font-weight: 700; font-size: .85rem; cursor: pointer; color: var(--aia-muted); padding: 0; line-height: 1;
+}
+.aia-steps button:hover { border-color: var(--aia-red); color: var(--aia-red); }
+.aia-steps button.on { background: var(--aia-red); border-color: var(--aia-red); color: #fff; }
+.aia-why { background: #fff8e6; border-radius: 10px; padding: 8px 12px; margin: 0 0 8px; font-size: .9rem; }
+.aia-why summary { cursor: pointer; font-weight: 700; color: #6b4a00; }
+.aia-why p { margin: 8px 0 0; }
+
+/* Yhteenveto */
+.aia-pick { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.aia-pick label { display: flex; align-items: center; gap: 10px; border: 1px solid var(--aia-line); border-radius: 10px; padding: 8px 10px; cursor: pointer; min-width: 0; }
+.aia-pick label.on { border-color: var(--yc); box-shadow: inset 4px 0 0 var(--yc); }
+.aia-pick input { width: 20px; height: 20px; accent-color: var(--aia-red); flex: 0 0 auto; }
+.aia-pick input:disabled + .aia-num + span { opacity: .55; }
+.aia-pick span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.aia-pick .aia-where { margin: 0; }
+.aia-num.empty { background: transparent; border: 2px dashed var(--aia-line); }
+.aia-legend { list-style: none; padding: 0; margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .85rem; }
+.aia-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.aia-ycards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.aia-ycard { background: var(--aia-bg); border: 1px solid var(--aia-line); border-top: 6px solid var(--yc); border-radius: var(--aia-radius); padding: 14px 16px; min-width: 0; }
+.aia-ycard-head { display: flex; gap: 10px; align-items: center; margin-bottom: 4px; }
+.aia-ycard-head .aia-num { background: var(--yc); }
+.aia-ycard h4 { font-size: 1rem; overflow-wrap: anywhere; }
+.aia-ycard .aia-quadchip { display: inline-block; margin: 6px 0 4px; }
+.aia-prio.sm b { font-size: 2rem; }
+.aia-yline { font-size: .88rem; margin: 6px 0; overflow-wrap: anywhere; }
+.aia-yline .aia-dot { margin-right: 4px; }
 
 /* Tulostus (PDF) */
 .aia-print { display: none; }
