@@ -217,6 +217,23 @@ section.block.soft { background: var(--soft); }
 .rm-table th { font-size: .8rem; color: var(--muted); }
 .rm-table tr.on td { background: var(--soft); font-weight: 700; }
 
+.rm-grid { margin-top: 20px; }
+.rm-grid-2 { grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr); }
+@media (max-width: 820px) { .rm-grid-2 { grid-template-columns: minmax(0, 1fr); } }
+.rm-h { display: flex; align-items: center; gap: 8px; }
+#rm-quad .aia-quad { max-width: 440px; }
+#rm-radar .aia-radarwrap { grid-template-columns: minmax(0, 1.7fr) minmax(150px, 1fr); }
+#rm-radar .aia-radar { max-width: 420px; }
+@media (max-width: 760px) { #rm-radar .aia-radarwrap { grid-template-columns: minmax(0, 1fr); } }
+.rm-rank-table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+.rm-rank-table th, .rm-rank-table td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.rm-rank-table th button { background: none; border: 0; padding: 0; font: inherit; font-weight: 700; font-size: .8rem; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.rm-rank-table th[aria-sort="ascending"] button, .rm-rank-table th[aria-sort="descending"] button { color: var(--red-dark); }
+.rm-rank-table tbody tr:nth-child(even) td { background: var(--soft); }
+.rm-rank-table td small.where { display: block; font-size: .8rem; color: var(--muted); margin: 0; }
+.rm-rank-table td:nth-child(3) { min-width: 140px; }
+.rm-rank-table .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
 /* Ambassadors */
 .amb { display: grid; gap: 32px; grid-template-columns: 220px 1fr; align-items: center; }
 @media (max-width: 700px) { .amb { grid-template-columns: 1fr; gap: 16px; } }

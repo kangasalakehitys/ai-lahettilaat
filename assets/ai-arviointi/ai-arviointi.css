@@ -332,6 +332,10 @@
 .aia-pguide li b { color: var(--aia-ink); }
 .aia-pguide li.on { color: var(--aia-ink); background: var(--aia-bg); border-radius: 0 6px 6px 0; padding: 6px 8px 6px 10px; }
 
+/* Nelikentän otsikko ja ?-painike */
+.aia-quadhead { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: .95rem; margin: 6px 0 4px; }
+.aia-source { margin-top: 10px; }
+
 /* Vaihe 4: tallennus */
 .aia-savebox { margin-top: 18px; padding: 14px 16px; border: 2px solid var(--aia-red); border-radius: var(--aia-radius); background: #fffafa; }
 .aia-savebox h4 { margin: 0 0 6px; color: var(--aia-red-dark); }

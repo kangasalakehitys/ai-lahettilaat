@@ -288,12 +288,15 @@
       impact: e ? e.quad.label : "", desc: String(raw.problem || ""),
       privacy: PRIV_LABEL[raw.privacy] || "", jory: !!raw.jory,
       prio: e ? String(Math.round(e.prio)) : "", prioN: e ? e.prio : null,
+      impactN: e ? e.impact : null, feasN: e ? e.feas : null, effortN: e ? e.effort : null,
+      safetyN: e ? e.safety : null, riskN: e ? e.risk : null, ratio: e ? e.ratio : null,
+      pscore: { vihrea: 100, keltainen: 60, punainen: 20 }[raw.privacy] || 50,
       updated: String(raw.updated || ""), planner: ""
     };
   }
 
   function importSnapshots(files) {
-    const byMonth = {}, errors = [];
+    const byMonth = {}, thrByMonth = {}, errors = [];
     const now = new Date();
     let read = 0;
     files.forEach((f) => {
@@ -307,6 +310,7 @@
       if (isNaN(d)) d = now;
       const month = d.getFullYear() + "-" + pad2(d.getMonth() + 1);
       const params = obj && !Array.isArray(obj) && obj.params ? obj.params : null;
+      if (params && !thrByMonth[month]) thrByMonth[month] = { impactThreshold: +params.impactThreshold || 50, effortThreshold: +params.effortThreshold || 50 };
       const m = byMonth[month] = byMonth[month] || {};
       list.forEach((raw) => {
         if (!raw || typeof raw !== "object") return;
@@ -319,7 +323,7 @@
     const months = Object.keys(byMonth).sort();
     const loaded = new Date().toISOString();
     months.forEach((month) => {
-      RM.snaps = RM.snaps.filter((x) => x.month !== month).concat([{ month, loaded, cases: Object.values(byMonth[month]) }]);
+      RM.snaps = RM.snaps.filter((x) => x.month !== month).concat([{ month, loaded, thr: thrByMonth[month] || null, cases: Object.values(byMonth[month]) }]);
     });
     RM.snaps.sort((a, b) => a.month.localeCompare(b.month));
     const stored = months.length ? saveSnaps() : true;
@@ -390,7 +394,30 @@
       const b = e.target.closest("[data-month]");
       if (b) { RM.month = b.dataset.month; renderTracking(); }
     });
-    ["#f-area", "#f-status", "#f-type"].forEach((id) => { const el = $(id); if (el) el.addEventListener("change", drawCases); });
+    ["#f-area", "#f-status", "#f-type"].forEach((id) => { const el = $(id); if (el) el.addEventListener("change", drawFiltered); });
+    const rank = $("#rm-rank");
+    if (rank) rank.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-rsort]");
+      if (!b) return;
+      const k = b.dataset.rsort;
+      if (RM.sortKey === k) RM.sortDir = -RM.sortDir;
+      else { RM.sortKey = k; RM.sortDir = ["rank", "name", "effort", "risk", "status"].indexOf(k) >= 0 ? 1 : -1; }
+      drawFiltered();
+    });
+    const help = $("#rm-quad-help"), dlg = $("#rm-quad-dlg");
+    if (help && dlg) {
+      help.addEventListener("click", () => {
+        const body = window.AIArviointi && window.AIArviointi.quadInfoHtml ? window.AIArviointi.quadInfoHtml() : "";
+        dlg.innerHTML = '<div class="aia-dlg-head"><h3 id="rm-quad-dlg-title">Nelikentän alueet</h3><button type="button" class="aia-dlg-x" data-close aria-label="Sulje">×</button></div>' +
+          body + '<div class="aia-actions"><button type="button" class="aia-btn primary" data-close>Sulje</button></div>';
+        if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+      });
+      dlg.addEventListener("click", (e) => {
+        if (e.target === dlg || e.target.closest("[data-close]")) { if (typeof dlg.close === "function") dlg.close(); else dlg.removeAttribute("open"); }
+      });
+    }
+    const ppt = $("#rm-pptx");
+    if (ppt) ppt.addEventListener("click", exportTrackingPptx);
   }
 
   function renderTracking() {
@@ -401,11 +428,28 @@
       ? "Näytetään tilanne <b>" + esc(monthLabel(snap.month)) + "</b> · " + snap.cases.length + " käyttötapausta · ladattu " + esc(fiDateTime(snap.loaded))
       : "Ei ladattuja tiedostoja. Alla näkyvät tiekarttaan kirjatut käyttötapaukset.";
     if (clear) clear.hidden = !RM.snaps.length;
+    const ppt = $("#rm-pptx"); if (ppt) ppt.hidden = !RM.snaps.length;
     if (monthly) monthly.hidden = !RM.snaps.length;
     if (RM.snaps.length) renderMonthly();
     const cases = (snap ? snap.cases : []).concat(RM.mdCases)
       .slice().sort((a, b) => (b.prioN == null ? -1 : b.prioN) - (a.prioN == null ? -1 : a.prioN));
     renderCases(cases);
+  }
+
+  function monthlyRows() {
+    let prevKeys = null;
+    return RM.snaps.map((x) => {
+      const keys = x.cases.map((c) => c.id || norm(c.name));
+      const added = prevKeys ? keys.filter((k) => prevKeys.indexOf(k) < 0).length : null;
+      prevKeys = keys;
+      const pr = x.cases.filter((c) => c.prioN != null);
+      return {
+        month: x.month, total: x.cases.length, added,
+        prod: x.cases.filter((c) => statusOf(c.status) && statusOf(c.status).label === "Tuotannossa").length,
+        avg: pr.length ? Math.round(pr.reduce((a, c) => a + c.prioN, 0) / pr.length) : null,
+        jory: x.cases.filter((c) => c.jory).length
+      };
+    });
   }
 
   function renderMonthly() {
@@ -432,49 +476,26 @@
     }
     const table = $("#rm-table");
     if (table) {
-      let prevKeys = null;
-      const rows = RM.snaps.map((x) => {
-        const keys = x.cases.map((c) => c.id || norm(c.name));
-        const added = prevKeys ? keys.filter((k) => prevKeys.indexOf(k) < 0).length : null;
-        prevKeys = keys;
-        const pr = x.cases.filter((c) => c.prioN != null);
-        const avg = pr.length ? Math.round(pr.reduce((a, c) => a + c.prioN, 0) / pr.length) : null;
-        return "<tr" + (x.month === RM.month ? ' class="on"' : "") + "><td>" + esc(monthLabel(x.month)) + "</td><td>" + x.cases.length + "</td><td>" + (added == null ? "–" : "+" + added) + "</td><td>" +
-          x.cases.filter((c) => statusOf(c.status) && statusOf(c.status).label === "Tuotannossa").length + "</td><td>" + (avg == null ? "–" : avg) + "</td><td>" +
-          x.cases.filter((c) => c.jory).length + "</td></tr>";
-      }).reverse().join("");
+      const rows = monthlyRows().map((r) =>
+        "<tr" + (r.month === RM.month ? ' class="on"' : "") + "><td>" + esc(monthLabel(r.month)) + "</td><td>" + r.total + "</td><td>" + (r.added == null ? "–" : "+" + r.added) + "</td><td>" +
+          r.prod + "</td><td>" + (r.avg == null ? "–" : r.avg) + "</td><td>" + r.jory + "</td></tr>").reverse().join("");
       table.innerHTML = '<table class="rm-table"><thead><tr><th scope="col">Kuukausi</th><th scope="col">Käyttötapauksia</th><th scope="col">Uusia</th>' +
         '<th scope="col">Tuotannossa</th><th scope="col">Keskim. prioriteetti</th><th scope="col">Jory-huomioita</th></tr></thead><tbody>' + rows + "</tbody></table>";
     }
   }
 
+  const AREA_COLORS = ["#28336c", "#00adc5", "#fcb316", "#009651", "#e64925", "#8a8c94"];
+  const curSnap = () => RM.snaps.find((x) => x.month === RM.month) || null;
+  const curThr = () => { const sn = curSnap(); return (sn && sn.thr) || { impactThreshold: 50, effortThreshold: 50 }; };
+  const hasScores = (c) => c.impactN != null && c.prioN != null;
+
   function renderCases(cases) {
     RM.cur = cases;
     const strip = $("#status-strip");
-    if (strip) strip.innerHTML = STATUSES.map((s) => {
-      const n = cases.filter((c) => statusOf(c.status) === s).length;
-      return '<div style="--c:' + s.c + '"><b>' + n + "</b><span>" + esc(s.label) + "</span></div>";
+    if (strip) strip.innerHTML = STATUSES.map((st) => {
+      const n = cases.filter((c) => statusOf(c.status) === st).length;
+      return '<div style="--c:' + st.c + '"><b>' + n + "</b><span>" + esc(st.label) + "</span></div>";
     }).join("");
-
-    const types = {};
-    cases.forEach((c) => { const t = c.type || "Ei määritelty"; types[t] = (types[t] || 0) + 1; });
-    const typeEl = $("#type-list");
-    const tKeys = Object.keys(types).sort((a, b) => types[b] - types[a]);
-    if (typeEl) typeEl.innerHTML = tKeys.length
-      ? tKeys.map((t) => "<li><span>" + esc(t) + "</span><b>" + types[t] + "</b></li>").join("")
-      : '<li class="muted">Ei vielä käyttötapauksia</li>';
-
-    const mx = $("#matrix");
-    if (mx) {
-      let mh = '<div class="ax-y">Vaikutus →</div>';
-      IMPACT.forEach((im) => {
-        const [r, c] = im.pos.split("/");
-        const n = cases.filter((x) => impactOf(x.impact) === im).length;
-        mh += '<div class="cell" style="grid-row:' + r + ";grid-column:" + c + ";background:" + im.c + (im.dark ? ";color:#1d1d1f" : "") + '"><b>' + n + "</b><span>" + esc(im.label) + "</span></div>";
-      });
-      mx.innerHTML = mh + '<div class="ax-x">Työmäärä →</div>';
-    }
-
     const fill = (sel, vals) => {
       if (!sel) return;
       const keep = sel.value;
@@ -483,16 +504,92 @@
     };
     const uniq = (k) => [...new Set(cases.map((c) => c[k]).filter(Boolean))].sort((a, b) => a.localeCompare(b, "fi"));
     fill($("#f-area"), uniq("area")); fill($("#f-status"), uniq("status")); fill($("#f-type"), uniq("type"));
-    drawCases();
+    drawFiltered();
   }
 
-  function drawCases() {
+  function filteredCases() {
+    const a = ($("#f-area") || {}).value, s = ($("#f-status") || {}).value, t = ($("#f-type") || {}).value;
+    return RM.cur.filter((c) => (!a || c.area === a) && (!s || c.status === s) && (!t || c.type === t));
+  }
+  const rankedScored = (list) => list.filter(hasScores).slice().sort((a, b) => b.prioN - a.prioN || a.name.localeCompare(b.name, "fi"));
+
+  function radarSeries(scored) {
+    const avg = (arr, k) => arr.reduce((s, c) => s + (c[k] || 0), 0) / arr.length;
+    const vals = (arr) => [
+      { label: "Vaikutus", v: avg(arr, "impactN") }, { label: "Toteutettavuus", v: avg(arr, "feasN") },
+      { label: "Riskien hallinta", v: avg(arr, "safetyN") }, { label: "Tietosuoja", v: avg(arr, "pscore") }];
+    const series = [{ color: "#de232f", name: "Koko organisaatio (" + scored.length + ")", vals: vals(scored) }];
+    const areas = [...new Set(scored.map((c) => c.area || "Muu"))].sort((a, b) => a.localeCompare(b, "fi"));
+    if (areas.length > 1) areas.forEach((ar, i) => {
+      const g = scored.filter((c) => (c.area || "Muu") === ar);
+      series.push({ color: AREA_COLORS[i % AREA_COLORS.length], name: ar + " (" + g.length + ")", vals: vals(g) });
+    });
+    return series;
+  }
+
+  function drawFiltered() {
+    const shown = filteredCases();
+    const scored = rankedScored(shown);
+    const missing = shown.length - scored.length;
+    const A = window.AIArviointi;
+
+    // tyypit
+    const types = {};
+    shown.forEach((c) => { const t = c.type || "Ei määritelty"; types[t] = (types[t] || 0) + 1; });
+    const typeEl = $("#type-list"), tKeys = Object.keys(types).sort((a, b) => types[b] - types[a]);
+    if (typeEl) typeEl.innerHTML = tKeys.length ? tKeys.map((t) => "<li><span>" + esc(t) + "</span><b>" + types[t] + "</b></li>").join("")
+      : '<li class="muted">Ei käyttötapauksia</li>';
+
+    // nelikenttä
+    const quad = $("#rm-quad");
+    if (quad) quad.innerHTML = A ? A.quadrantSvg(scored.map((c, i) => {
+      const st = statusOf(c.status);
+      return { x: c.effortN, y: c.impactN, n: i + 1, c: st ? st.c : "#8a8c94", tc: st && st.dark ? "#1d1d1f" : "#fff", title: (i + 1) + ". " + c.name + " – " + Math.round(c.prioN) + " p." };
+    }), curThr(), "Nelikenttä: käyttötapaukset vaikutuksen ja työmäärän mukaan") : "";
+    const note = $("#rm-quad-note");
+    if (note) note.textContent = (scored.length ? "Numero = sijoitus prioriteettijärjestyksessä, väri = tila. " : "Lataa arviointityökalun JSON-tiedostot, niin käyttötapaukset näkyvät nelikentässä. ") +
+      (missing > 0 ? missing + " käyttötapausta ilman arviointipisteitä ei näy nelikentässä, tutkakaaviossa eikä taulukossa (lataa niiden JSON-tiedosto uudelleen)." : "");
+
+    // tutkakaavio
+    const radar = $("#rm-radar");
+    if (radar) {
+      if (A && scored.length) {
+        const ser = radarSeries(scored);
+        radar.innerHTML = '<div class="aia-radarwrap"><div>' + A.radarSvg(ser) + '</div><ol class="aia-legend v">' +
+          ser.map((x) => '<li><i style="background:' + x.color + '"></i><span>' + esc(x.name) + "</span></li>").join("") + "</ol></div>" +
+          '<p class="note">Keskiarvot 0–100. Punainen = koko organisaatio, muut = palvelualueet.</p>';
+      } else radar.innerHTML = '<p class="muted">Ei arviointipisteitä näytettäväksi.</p>';
+    }
+
+    // prioriteettijärjestys
+    const rank = $("#rm-rank");
+    if (rank) {
+      if (!scored.length) rank.innerHTML = '<p class="muted">Ei arviointipisteitä näytettäväksi.</p>';
+      else {
+        const rows = scored.map((c, i) => ({ c, rank: i + 1 }));
+        const key = RM.sortKey || "rank", dir = RM.sortDir || 1;
+        const val = { rank: (r) => r.rank, name: (r) => r.c.name, prio: (r) => r.c.prioN, impact: (r) => r.c.impactN, effort: (r) => r.c.effortN, risk: (r) => r.c.riskN, status: (r) => r.c.status }[key] || ((r) => r.rank);
+        rows.sort((a, b) => { const x = val(a), y = val(b); return (typeof x === "string" ? x.localeCompare(y, "fi") : x - y) * dir || a.rank - b.rank; });
+        const cols = [["rank", "#"], ["name", "Käyttötapaus"], ["prio", "Kokonaispisteet"], ["impact", "Vaikutus"], ["effort", "Työmäärä"], ["risk", "Riski"], ["status", "Tila"]];
+        const pbar = (v) => '<span class="aia-pbar"><i><b style="width:' + Math.round(v) + '%"></b></i><em>' + Math.round(v) + "</em></span>";
+        rank.innerHTML = '<div class="rm-tablewrap"><table class="rm-rank-table"><thead><tr>' + cols.map((c) =>
+          '<th scope="col" aria-sort="' + (key === c[0] ? (dir > 0 ? "ascending" : "descending") : "none") + '"><button type="button" data-rsort="' + c[0] + '">' + c[1] +
+          (key === c[0] ? (dir > 0 ? " ↑" : " ↓") : "") + "</button></th>").join("") + "</tr></thead><tbody>" +
+          rows.map((r) => {
+            const st = statusOf(r.c.status);
+            return "<tr><td>" + r.rank + "</td><td>" + esc(r.c.name) + '<small class="where">' + esc([r.c.area, r.c.unit].filter(Boolean).join(" · ")) + "</small></td>" +
+              "<td>" + pbar(r.c.prioN) + "</td><td>" + Math.round(r.c.impactN) + "</td><td>" + Math.round(r.c.effortN) + "</td><td>" + Math.round(r.c.riskN) + "</td>" +
+              '<td><i class="dot" style="background:' + (st ? st.c : "#ccc") + '"></i>' + esc(r.c.status || "–") + "</td></tr>";
+          }).join("") + '</tbody></table></div><p class="note">Järjestä klikkaamalla otsikkoa.</p>';
+      }
+    }
+    drawCards(shown);
+  }
+
+  function drawCards(shown) {
     const listEl = $("#uc-list");
     if (!listEl) return;
-    const cases = RM.cur;
-    const a = ($("#f-area") || {}).value, s = ($("#f-status") || {}).value, t = ($("#f-type") || {}).value;
-    const shown = cases.filter((c) => (!a || c.area === a) && (!s || c.status === s) && (!t || c.type === t));
-    if (!cases.length) {
+    if (!RM.cur.length) {
       listEl.innerHTML = '<div class="empty" style="grid-column:1/-1">Ei vielä käyttötapauksia. Lataa arviointityökalun JSON-tiedostot yllä, niin käyttötapaukset näkyvät tässä.</div>';
       return;
     }
@@ -514,6 +611,124 @@
         (/^https?:\/\//i.test(c.planner) ? linkHtml("Avaa Plannerissa", c.planner) : "") +
         "</article>";
     }).join("");
+  }
+
+  /* ---------- Tiekartan seurannan PowerPoint ---------- */
+  function loadScript(src) {
+    return new Promise((res, rej) => {
+      const el = document.createElement("script");
+      el.src = src; el.async = true;
+      el.onload = () => res(); el.onerror = () => rej(new Error("PowerPoint-kirjasto ei latautunut"));
+      document.head.appendChild(el);
+    });
+  }
+
+  async function exportTrackingPptx() {
+    const msgEl = $("#rm-msg");
+    const say = (t, cls) => { if (msgEl) { msgEl.textContent = t; msgEl.className = "rm-msg " + (cls || ""); } };
+    const snap = curSnap();
+    if (!snap) { say("Lataa ensin käyttötapaukset (JSON).", "error"); return; }
+    say("Luodaan PowerPoint-esitystä…");
+    try {
+      const A = window.AIArviointi;
+      if (!window.PptxGenJS) await loadScript((A && A.pptxUrl) || "https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js");
+      const F = "Century Gothic", hex = (c) => String(c).replace("#", "").toUpperCase();
+      const shown = filteredCases(), scored = rankedScored(shown), thr = curThr();
+      const filt = [["Palvelualue", ($("#f-area") || {}).value], ["Tila", ($("#f-status") || {}).value], ["Tyyppi", ($("#f-type") || {}).value]]
+        .filter((x) => x[1]).map((x) => x[0] + ": " + x[1]).join(", ");
+      const now = new Date(), today = now.getDate() + "." + (now.getMonth() + 1) + "." + now.getFullYear();
+      const p = new window.PptxGenJS();
+      p.layout = "LAYOUT_WIDE"; p.title = "AI-tiekartan seuranta"; p.company = "Kangasalan kaupunki";
+      const header = (sl, t) => {
+        sl.addText(t, { x: 0.5, y: 0.3, w: 12.3, h: 0.7, fontFace: F, fontSize: 24, bold: true, color: "DE232F" });
+        sl.addText("Kangasalan kaupunki · AI-tiekartan seuranta · tilanne " + monthLabel(snap.month) + (filt ? " · " + filt : ""),
+          { x: 0.5, y: 7.0, w: 12.3, h: 0.3, fontFace: F, fontSize: 9, color: "5B5D66" });
+      };
+
+      // 1 otsikko
+      let sl = p.addSlide();
+      sl.background = { color: "DE232F" };
+      sl.addText("AI-tiekartan seuranta – tilanne " + monthLabel(snap.month), { x: 0.7, y: 2.2, w: 11.9, h: 1.2, fontFace: F, fontSize: 38, bold: true, color: "FFFFFF" });
+      sl.addText("Kangasalan kaupunki · " + today + " · " + shown.length + " käyttötapausta" + (filt ? " · rajaus: " + filt : ""),
+        { x: 0.7, y: 3.5, w: 11.9, h: 0.6, fontFace: F, fontSize: 18, color: "FFFFFF" });
+
+      // 2 tilanne
+      sl = p.addSlide(); header(sl, "Käyttötapausten tila");
+      STATUSES.forEach((st, i) => {
+        const n = shown.filter((c) => statusOf(c.status) === st).length, bx = 0.5 + i * 2.07;
+        sl.addShape("rect", { x: bx, y: 1.15, w: 1.95, h: 1.0, fill: { color: "F6F5F3" }, line: { color: hex(st.c), width: 2 } });
+        sl.addText([{ text: String(n), options: { fontSize: 26, bold: true, color: hex(st.c), breakLine: true } }, { text: st.label, options: { fontSize: 11, color: "1D1D1F" } }],
+          { x: bx, y: 1.15, w: 1.95, h: 1.0, fontFace: F, align: "center", valign: "middle" });
+      });
+      if (RM.snaps.length) {
+        const labels = RM.snaps.map((x) => monthLabel(x.month));
+        sl.addChart(p.ChartType.bar, STATUSES.map((st) => ({ name: st.label, labels, values: RM.snaps.map((x) => x.cases.filter((c) => statusOf(c.status) === st).length) })), {
+          x: 0.5, y: 2.4, w: 12.3, h: 4.5, barDir: "col", barGrouping: "stacked", chartColors: STATUSES.map((st) => hex(st.c)),
+          showLegend: true, legendPos: "b", legendFontFace: F, legendFontSize: 11, catAxisLabelFontFace: F, valAxisLabelFontFace: F,
+          showTitle: true, title: "Käyttötapaukset kuukausittain tiloittain", titleFontFace: F, titleFontSize: 13
+        });
+      }
+
+      // 3 nelikenttä
+      sl = p.addSlide(); header(sl, "Nelikenttä: vaikutus ja työmäärä");
+      const qx = 1.0, qy = 1.2, size = 5.4;
+      const lw = size * thr.effortThreshold / 100, th = size * (1 - thr.impactThreshold / 100);
+      const quads = (A && A.QUADS) || [];
+      [[qx, qy, lw, th], [qx + lw, qy, size - lw, th], [qx, qy + th, lw, size - th], [qx + lw, qy + th, size - lw, size - th]].forEach((r, i) => {
+        const q = quads[i]; if (!q || r[2] <= 0.01 || r[3] <= 0.01) return;
+        sl.addShape("rect", { x: r[0], y: r[1], w: r[2], h: r[3], fill: { color: hex(q.c), transparency: 80 }, line: { color: "FFFFFF", width: 1.5 } });
+        sl.addText(q.label, { x: r[0] + 0.05, y: i < 2 ? r[1] + 0.05 : r[1] + r[3] - 0.55, w: Math.max(r[2] - 0.1, 0.4), h: 0.5, fontFace: F, fontSize: 9, bold: true,
+          color: "1D1D1F", valign: i < 2 ? "top" : "bottom", align: i % 2 ? "right" : "left", margin: 2 });
+      });
+      sl.addText("Työmäärä →", { x: qx, y: qy + size + 0.03, w: size, h: 0.3, fontFace: F, fontSize: 10, color: "5B5D66", align: "center" });
+      sl.addText("Vaikutus →", { x: qx - 0.25 - size / 2, y: qy + size / 2 - 0.15, w: size, h: 0.3, fontFace: F, fontSize: 10, color: "5B5D66", align: "center", rotate: 270 });
+      scored.forEach((c, i) => {
+        const st = statusOf(c.status), d = 0.32;
+        const px = Math.min(Math.max(qx + size * c.effortN / 100, qx + d / 2), qx + size - d / 2), py = Math.min(Math.max(qy + size * (1 - c.impactN / 100), qy + d / 2), qy + size - d / 2);
+        sl.addShape("ellipse", { x: px - d / 2, y: py - d / 2, w: d, h: d, fill: { color: hex(st ? st.c : "#8a8c94") }, line: { color: "FFFFFF", width: 1.5 } });
+        sl.addText(String(i + 1), { x: px - d / 2, y: py - d / 2, w: d, h: d, fontFace: F, fontSize: 9, bold: true, color: st && st.dark ? "1D1D1F" : "FFFFFF", align: "center", valign: "middle", margin: 0 });
+      });
+      sl.addText(scored.slice(0, 15).map((c, i) => ({ text: (i + 1) + ". " + c.name + "  (" + Math.round(c.prioN) + ")", options: { breakLine: true } })),
+        { x: 7.2, y: 1.2, w: 5.6, h: 5.4, fontFace: F, fontSize: 11, color: "1D1D1F", valign: "top", fit: "shrink" });
+
+      // 4 prioriteettijärjestys
+      sl = p.addSlide(); header(sl, "Prioriteettijärjestys");
+      const hdr = ["#", "Käyttötapaus", "Palvelualue", "Kokonaispisteet", "Vaikutus", "Työmäärä", "Tila"].map((t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: "28336C" } } }));
+      sl.addTable([hdr].concat(scored.slice(0, 15).map((c, i) => [String(i + 1), c.name, c.area, String(Math.round(c.prioN)), String(Math.round(c.impactN)), String(Math.round(c.effortN)), c.status]).map((r, i) =>
+        r.map((v) => ({ text: v, options: { fill: { color: i % 2 ? "F6F5F3" : "FFFFFF" } } })))),
+        { x: 0.5, y: 1.15, w: 12.3, colW: [0.5, 4.6, 2.3, 1.4, 1.1, 1.1, 1.3], fontFace: F, fontSize: 10, valign: "middle", border: { type: "solid", pt: 0.5, color: "E4E4E8" }, autoPage: false });
+      if (scored.length > 15) sl.addText("+ " + (scored.length - 15) + " muuta", { x: 0.5, y: 6.65, w: 6, h: 0.3, fontFace: F, fontSize: 10, color: "5B5D66" });
+
+      // 5 tutkakaavio
+      sl = p.addSlide(); header(sl, "Tutkakaavio – kokonaisuus (keskiarvot 0–100)");
+      if (scored.length) {
+        const ser = radarSeries(scored);
+        sl.addChart(p.ChartType.radar, ser.map((x) => ({ name: x.name, labels: x.vals.map((v) => v.label), values: x.vals.map((v) => Math.round(v.v)) })), {
+          x: 0.8, y: 1.1, w: 11.7, h: 5.8, radarStyle: "standard", chartColors: ser.map((x) => hex(x.color)), lineSize: 2,
+          valAxisMinVal: 0, valAxisMaxVal: 100, showLegend: true, legendPos: "r", legendFontFace: F, legendFontSize: 11, catAxisLabelFontFace: F, catAxisLabelFontSize: 12
+        });
+      }
+
+      // 6 kuukausitaulukko
+      sl = p.addSlide(); header(sl, "Kuukausittainen tilannekuva");
+      const mh = ["Kuukausi", "Käyttötapauksia", "Uusia", "Tuotannossa", "Keskim. prioriteetti", "Jory-huomioita"].map((t) => ({ text: t, options: { bold: true, color: "FFFFFF", fill: { color: "28336C" } } }));
+      sl.addTable([mh].concat(monthlyRows().reverse().map((r) => [monthLabel(r.month), String(r.total), r.added == null ? "–" : "+" + r.added, String(r.prod), r.avg == null ? "–" : String(r.avg), String(r.jory)])),
+        { x: 0.5, y: 1.15, w: 12.3, fontFace: F, fontSize: 12, valign: "middle", border: { type: "solid", pt: 0.5, color: "E4E4E8" }, autoPage: false });
+
+      // 7 nelikentän selitteet
+      sl = p.addSlide(); header(sl, "Nelikentän alueet");
+      const runs = [];
+      ((A && A.QUAD_INFO) || []).forEach((q) => {
+        runs.push({ text: q.label, options: { bold: true, color: hex(q.c), breakLine: true } });
+        runs.push({ text: q.text, options: { breakLine: true } });
+        runs.push({ text: " ", options: { fontSize: 6, breakLine: true } });
+      });
+      runs.push({ text: "Lähde: OpenAI – Tekoälyn käyttötapausten tunnistaminen ja skaalaaminen", options: { color: "B81A24", hyperlink: { url: (A && A.SOURCE) || "https://openai.com/fi-FI/business/learn/identifying-and-scaling-ai-use-cases/" } } });
+      sl.addText(runs, { x: 0.5, y: 1.15, w: 12.3, h: 5.6, fontFace: F, fontSize: 14, color: "1D1D1F", valign: "top" });
+
+      await p.writeFile({ fileName: "ai-tiekartan-seuranta-" + snap.month + ".pptx" });
+      say("PowerPoint ladattu.", "ok");
+    } catch (err) { say("PowerPointin luonti epäonnistui: " + err.message, "error"); console.error(err); }
   }
 
   /* ---------- Lähettiläät (Excel, vain sarake A) ---------- */

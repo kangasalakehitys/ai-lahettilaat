@@ -59,6 +59,9 @@ Etusivun *AI-tiekartan seuranta* -osioon voi ladata arviointityökalusta tallenn
 - Tiedostot luetaan vain katsojan selaimeen (localStorage), niitä ei julkaista sivustolle.
 - Kuukausi määräytyy tiedoston vientipäivästä (`exported`); jos sitä ei ole, käytetään latauspäivää. Saman kuukauden uusi lataus korvaa kuukauden tilannekuvan.
 - Omistajaa ei näytetä eikä tallenneta.
+- Näkymät noudattavat valittua kuukautta ja suodattimia: tila, nelikenttä (sama kuin arviointityökalussa), tutkakaavio (koko organisaation ja palvelualueiden keskiarvot), tyypit, prioriteettijärjestys ja kortit. Ennen 11/2026 ladatuissa tilannekuvissa ei ole pisteitä – lataa tiedostot uudelleen, niin ne näkyvät nelikentässä, tutkakaaviossa ja taulukossa.
+- *Lataa tilannekuva PowerPointina* tekee valitusta kuukaudesta esityksen (tila, kuukausikaavio, nelikenttä, prioriteettijärjestys, tutkakaavio, kuukausitaulukko, nelikentän selitteet).
+- Nelikentän ?-painike avaa selitteet alueista (lähde: OpenAI). Sama selite on arviointityökalun jokaisessa nelikentässä.
 - `content/tiekartta.md`:n `## Käyttötapaukset`-lohkot näkyvät edelleen ladattujen rinnalla.
 
 ## Arviointityökalu

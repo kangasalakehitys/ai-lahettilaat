@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/ai-arviointi/ai-arviointi.css">
 </head>
 <body>
   <header class="site-header">
@@ -103,6 +104,7 @@
             </div>
             <div class="rm-upload-btns">
               <button type="button" class="btn alt" id="rm-pick">Lataa käyttötapaukset (JSON)</button>
+              <button type="button" class="btn-plain" id="rm-pptx" hidden>Lataa tilannekuva PowerPointina</button>
               <button type="button" class="btn-plain" id="rm-clear" hidden>Tyhjennä ladatut tiedot</button>
               <input type="file" id="rm-file" accept=".json,application/json" multiple hidden>
             </div>
@@ -123,23 +125,40 @@
         <h3 style="margin-top:32px">Käyttötapausten tila</h3>
         <div class="status-strip" id="status-strip"></div>
 
-        <div class="rm-grid">
-          <div class="panel">
-            <h3>Tyypit</h3>
-            <ul class="type-list" id="type-list"></ul>
-          </div>
-          <div class="panel">
-            <h3>Vaikuttavuus</h3>
-            <div class="matrix" id="matrix"></div>
-          </div>
-        </div>
-
         <div class="filters">
           <label>Palvelualue<select id="f-area"></select></label>
           <label>Tila<select id="f-status"></select></label>
           <label>Tyyppi<select id="f-type"></select></label>
         </div>
+
+        <div class="rm-grid">
+          <div class="panel">
+            <h3 class="rm-h">Nelikenttä
+              <button type="button" class="aia aia-info" id="rm-quad-help" aria-haspopup="dialog" title="Mitä nelikentän alueet tarkoittavat?">?<span class="visually-hidden"> Mitä nelikentän alueet tarkoittavat?</span></button>
+            </h3>
+            <div class="aia" id="rm-quad"></div>
+            <p class="note" id="rm-quad-note"></p>
+          </div>
+          <div class="panel">
+            <h3>Tutkakaavio – kokonaisuus</h3>
+            <div class="aia" id="rm-radar"></div>
+          </div>
+        </div>
+
+        <div class="rm-grid rm-grid-2">
+          <div class="panel">
+            <h3>Tyypit</h3>
+            <ul class="type-list" id="type-list"></ul>
+          </div>
+          <div class="panel">
+            <h3>Prioriteettijärjestys</h3>
+            <div class="aia" id="rm-rank"></div>
+          </div>
+        </div>
+
+        <h3 style="margin-top:28px">Käyttötapaukset</h3>
         <div class="uc-list" id="uc-list"></div>
+        <dialog class="aia aia-dialog" id="rm-quad-dlg" aria-labelledby="rm-quad-dlg-title"></dialog>
         <p class="note">Sivulla seurataan käyttötapauksia ylätasolla. Tarkempi seuranta tehdään Teamsin Plannerissa.</p>
       </div>
     </section>

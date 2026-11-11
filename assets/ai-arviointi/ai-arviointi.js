@@ -65,6 +65,7 @@
       ex: ["Lomakkeiden ja hakemusten esikäsittely ja ohjaus", "Palautteiden ja sähköpostien ohjaus oikealle käsittelijälle", "Rutiini-ilmoitukset ja muistutukset"] }
   };
   const TYPE_SOURCE = "https://openai.com/fi-FI/business/learn/identifying-and-scaling-ai-use-cases/";
+  const SOURCE_HTML = '<p class="aia-note aia-source">Lähde: <a href="' + TYPE_SOURCE + '" target="_blank" rel="noopener">OpenAI – Tekoälyn käyttötapausten tunnistaminen ja skaalaaminen</a></p>';
   // Tilojen selitteet (Tila-kohdan ?-ponnahdusikkuna).
   const DEFAULT_STATUS_INFO = {
     "Ideat": "Käyttötapaus on tunnistettu ja kirjattu ylös, mutta sitä ei ole vielä tutkittu tarkemmin. Tässä vaiheessa kuvataan lyhyesti ongelma, johon haetaan ratkaisua.",
@@ -98,6 +99,13 @@
     { key: "heikko", label: "Suuri työmäärä / pieni merkitys", lines: ["Suuri työmäärä /", "pieni merkitys"], c: "#e64925",
       rec: "Ei nyt: kirjaa idea ja palaa siihen, kun tilanne muuttuu." }
   ];
+  // Nelikentän alueiden selitteet (lähde: OpenAI, ks. TYPE_SOURCE).
+  const QUAD_INFO = [
+    { key: "roi", text: "Nopeat onnistumiset, jotka tuottavat organisaatiolle toimintahyötyä pienellä panostuksella. Nämä ovat parhaita käyttötapauksien aloituksia." },
+    { key: "itse", text: "Pienen työmäärän projektit. Yksittäinen työntekijä voi luoda itselleen jonkin avustajan, tiettyyn tehtävään. Alkavat yksilön löydöksinä ja kokeiluina, mutta leviävät usein hyödyllisiksi organisaatiossa esimerkiksi yksiköille ja tiimeille." },
+    { key: "iso", text: "Toimintaa uudistavat laajat hankkeet, kuten laajat automatisoinnit. Vaativat enemmän aikaa, suunnittelua ja teknisiä resursseja." },
+    { key: "heikko", text: "Ideat, jotka kannattaa alkuvaiheessa jättää odottamaan. Tekoälyn nopea kehitys voi kuitenkin madaltaa näiden toteutusta myöhemmin." }
+  ].map((x) => { const q = QUADS.find((y) => y.key === x.key); return { key: x.key, label: q.label, c: q.c, text: x.text }; });
 
   // Arviointikriteerit (14 kpl). Jokainen liukusäädin 1–5, jossa 5 on aina toiminnan kannalta paras.
   const BASE_PARAMS = {
@@ -350,6 +358,12 @@
     ];
   }
 
+  function quadInfoHtml() {
+    return '<p class="aia-note">Nelikenttä sijoittaa käyttötapauksen vaikutuksen (pystyakseli) ja työmäärän (vaaka-akseli) mukaan.</p>' +
+      '<dl class="aia-types">' + QUAD_INFO.map((q) =>
+        '<div><dt><i class="aia-dot" style="background:' + q.c + '"></i>' + esc(q.label) + "</dt><dd>" + esc(q.text) + "</dd></div>").join("") + "</dl>" + SOURCE_HTML;
+  }
+
   function loadScript(src) {
     return new Promise((res, rej) => {
       const s = document.createElement("script");
@@ -482,6 +496,7 @@
       const head = (title) => '<div class="aia-dlg-head"><h3 id="' + ID + '-dlg-title">' + title + "</h3>" +
         '<button type="button" class="aia-dlg-x" data-act="dialog-close" aria-label="Sulje">×</button></div>';
       const foot = '<div class="aia-actions"><button type="button" class="aia-btn primary" data-act="dialog-close">Sulje</button></div>';
+      if (kind === "quad") return head("Nelikentän alueet") + quadInfoHtml() + foot;
       if (kind === "status") {
         return head("Käyttötapauksen tila") +
           '<p class="aia-note">Tila kertoo, missä vaiheessa käyttötapaus on. Päivitä tila, kun käyttötapaus etenee.</p>' +
@@ -497,7 +512,7 @@
             (inf.ex && inf.ex.length ? "<ul>" + inf.ex.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>" : "") +
             '<button type="button" class="aia-btn small ghost" data-act="pick-type" data-type="' + esc(t) + '">Valitse tämä</button></dd></div>';
         }).join("") + "</dl>" +
-        '<p class="aia-note">Lähde: <a href="' + TYPE_SOURCE + '" target="_blank" rel="noopener">OpenAI: Tekoälyn käyttötapausten tunnistaminen ja skaalaaminen</a></p>' + foot;
+        SOURCE_HTML + foot;
     }
     function openDialog(kind) {
       dialog.querySelector("[data-dlg]").innerHTML = dialogContent(kind);
@@ -538,6 +553,7 @@
     const exportBtns = (scope, label, names) => '<div class="aia-export">' + (label === "" ? "" : "<span>" + (label || "Lataa:") + "</span>") +
       [["json", "JSON"], ["pptx", "PowerPoint"], ["pdf", "PDF"], ["csv", "CSV"]].filter((k) => !hide(k[0]))
         .map((k) => btn(k[0] + "-" + scope, (names && names[k[0]]) || k[1], "ghost")).join("") + "</div>";
+    const quadHelp = '<button type="button" class="aia-info" data-act="info" data-info="quad" aria-haspopup="dialog" title="Mitä nelikentän alueet tarkoittavat?">?<span class="aia-sr"> Mitä nelikentän alueet tarkoittavat?</span></button>';
     const reqMark = '<span class="aia-req" aria-hidden="true">*</span><span class="aia-sr"> (pakollinen)</span>';
 
     function field(label, control, help, forId, req) {
@@ -773,6 +789,7 @@
       let h = '<div class="aia-headline"><div class="aia-prio"><b>' + r0(e.prio) + "</b><span>Prioriteetti<br>/ 100</span></div>" +
         '<span class="aia-quadchip" style="--qc:' + e.quad.c + '">' + esc(e.quad.label) + "</span></div>";
       h += '<ul class="aia-recs">' + e.recs.map((r) => "<li>" + esc(r) + "</li>").join("") + "</ul>";
+      h += '<div class="aia-quadhead"><span>Nelikenttä</span>' + quadHelp + "</div>";
       h += quadrantSvg([{ x: e.effort, y: e.impact, n: "", c: e.quad.c, title: c.name || "Tämä käyttötapaus" }], P);
       h += barsHtml(e);
       h += radarSvg(radarVals(c, e));
@@ -913,7 +930,7 @@
       h += exportBtns("list", "", { json: "Lataa omat arvioinnit koneelle JSON-muodossa", pptx: "Lataa omat arvioinnit koneelle PPTX-muodossa",
         pdf: "Lataa omat arvioinnit PDF-muodossa", csv: "Lataa omat arvioinnit CSV-muodossa" });
       if (!items.length) { h += '<div class="aia-empty">Ei arviointeja valituilla suodattimilla.</div>'; panel("omat").innerHTML = h; return; }
-      h += '<div class="aia-grid2"><div class="aia-card"><h3>Salkkunäkymä</h3>' +
+      h += '<div class="aia-grid2"><div class="aia-card"><h3>Salkkunäkymä ' + quadHelp + "</h3>" + '' +
         quadrantSvg(items.map((it, i) => ({ x: it.e.effort, y: it.e.impact, n: i + 1, c: dotColor(it.c, it.e), tc: dotColor(it.c, it.e) === "#fcb316" ? "#1d1d1f" : "#fff", title: (i + 1) + ". " + it.c.name })), P, "Salkkunäkymä: käyttötapaukset nelikentässä") +
         '<p class="aia-note">' + (showStatus ? "Pallon väri kertoo tilan" : "Pallon väri kertoo nelikentän") + ", numero prioriteettijärjestyksen.</p></div><ol class=\"aia-list\">";
       items.forEach((it, i) => {
@@ -964,7 +981,7 @@
       const cs = selCases(), ev = cs.map((c) => evaluate(c, P));
       const avg = pool.reduce((sum, it) => sum + it.e.prio, 0) / pool.length;
 
-      h += '<div class="aia-card"><h3>Nelikenttä – ' + pool.length + " käyttötapaus" + (pool.length === 1 ? "" : "ta") + "</h3>" +
+      h += '<div class="aia-card"><h3>Nelikenttä – ' + pool.length + " käyttötapaus" + (pool.length === 1 ? "" : "ta") + " " + quadHelp + "</h3>" +
         '<div class="aia-quadwrap">' + quadrantSvg(pool.map((it, i) => {
           const k = sel.indexOf(it.c.id);
           return { x: it.e.effort, y: it.e.impact, n: i + 1, c: k >= 0 ? selColor(k) : "#c4c5cc", tc: k >= 0 ? selText(k) : "#1d1d1f",
@@ -1065,7 +1082,7 @@
       h += '<div class="aia-actions">' + btn("sim-apply", "Ota käyttöön", "primary", ' title="Tallentaa nämä painotukset parametreiksi"') + btn("sim-reset", "Palauta nykyisiin") + "</div>" +
         '<div class="aia-scen-save"><label class="aia-lbl" for="' + ID + '-scen">Tallenna skenaariona</label><div class="aia-inline">' +
         '<input type="text" id="' + ID + '-scen" maxlength="60" placeholder="esim. Painotus: nopeat hyödyt">' + btn("scen-save", "Tallenna") + "</div></div></div>";
-      h += '<div class="aia-card"><h3>Salkku simuloiduilla painotuksilla</h3><div data-simquad></div></div></div>';
+      h += '<div class="aia-card"><h3>Salkku simuloiduilla painotuksilla ' + quadHelp + "</h3>" + '<div data-simquad></div></div></div>';
       h += '<div class="aia-card"><div class="aia-rank-head"><h3>Prioriteettijärjestys</h3><div class="aia-inline">' +
         (showStatus ? '<label class="aia-check"><input type="checkbox" data-opt="openOnly"' + (S.openOnly ? " checked" : "") + "> Vain avoimet (ei tuotannossa tai hylätty)</label>" : "") +
         '<label class="aia-small-sel">Korosta <select data-opt="topN">' + [3, 5, 10].map((n) => "<option" + (n === S.topN ? " selected" : "") + ">" + n + "</option>").join("") + "</select> parasta</label>" +
@@ -1722,5 +1739,13 @@
     };
   }
 
-  global.AIArviointi = { mount, evaluate: (c, p) => evaluate(fixCase(c), normalizeParams(p || {}, BASE_PARAMS)), normalizeParams, defaults: () => clone(BASE_PARAMS), version: VERSION };
+  global.AIArviointi = {
+    mount,
+    evaluate: (c, p) => evaluate(fixCase(c), normalizeParams(p || {}, BASE_PARAMS)),
+    normalizeParams, defaults: () => clone(BASE_PARAMS), version: VERSION,
+    // Jaetut kuviot ja selitteet muille sivuille (esim. tiekartan seuranta).
+    quadrantSvg: (points, p, label) => quadrantSvg(points, normalizeParams(p || {}, BASE_PARAMS), label),
+    radarSvg, quadInfoHtml, QUAD_INFO: clone(QUAD_INFO), QUADS: clone(QUADS), SOURCE: TYPE_SOURCE,
+    pptxUrl: "https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"
+  };
 })(window);
