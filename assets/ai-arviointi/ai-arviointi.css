@@ -277,6 +277,62 @@
 .aia-yline { font-size: .88rem; margin: 6px 0; overflow-wrap: anywhere; }
 .aia-yline .aia-dot { margin-right: 4px; }
 
+/* Vaiheistus (stepper) */
+.aia-stepper ol { list-style: none; display: flex; gap: 6px; padding: 0; margin: 0 0 16px; }
+.aia-stepper li { flex: 1 1 0; min-width: 0; }
+.aia-stepper button {
+  width: 100%; display: flex; align-items: center; gap: 8px; min-height: 44px; text-align: left;
+  background: var(--aia-soft); border: 0; border-radius: 999px; padding: 6px 12px 6px 6px;
+  font-weight: 700; font-size: .88rem; color: var(--aia-muted); cursor: pointer;
+}
+.aia-stepper button:hover:not(:disabled) { color: var(--aia-ink); }
+.aia-stepper button:disabled { cursor: default; opacity: .6; }
+.aia-stepper .n { flex: 0 0 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--aia-bg); border: 2px solid var(--aia-line); }
+.aia-stepper .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aia-stepper button.done { color: var(--aia-ink); }
+.aia-stepper button.done .n { background: var(--aia-green); border-color: var(--aia-green); color: #fff; }
+.aia-stepper button.cur { background: #fde4e5; color: var(--aia-red-dark); }
+.aia-stepper button.cur .n { background: var(--aia-red); border-color: var(--aia-red); color: #fff; }
+@media (max-width: 700px) {
+  .aia-stepper li { flex: 0 0 auto; }
+  .aia-stepper li.cur { flex: 1 1 auto; }
+  .aia-stepper li:not(.cur) .t { display: none; }
+  .aia-stepper li:not(.cur) button { padding: 6px; }
+}
+.aia-wnav { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--aia-line); }
+.aia-wnav .aia-btn.primary { margin-left: auto; }
+.aia-wmsg { flex: 1 0 100%; margin: 0; color: var(--aia-red-dark); font-weight: 700; font-size: .9rem; }
+.aia-wmsg:empty { display: none; }
+.aia-eval:not([data-cur="4"]) .aia-r4 { display: none; }
+.aia-eval[data-cur="4"] .aia-r13 { display: none; }
+@media (max-width: 900px) { .aia-eval:not([data-cur="4"]) .aia-result { display: none; } }
+.aia-row3 { display: grid; gap: 0 16px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.aia-sumlist { margin: 0; }
+.aia-sumlist > div { display: grid; grid-template-columns: minmax(120px, 34%) 1fr; gap: 12px; padding: 8px 0; border-top: 1px solid var(--aia-line); }
+@media (max-width: 480px) { .aia-sumlist > div { grid-template-columns: 1fr; gap: 2px; } }
+.aia-sumlist dt { font-weight: 700; font-size: .88rem; color: var(--aia-navy); }
+.aia-sumlist dd { margin: 0; font-size: .93rem; overflow-wrap: anywhere; }
+.aia-muted { color: var(--aia-muted); }
+
+/* Yhteenveto: pisteet pylväinä ja taulukko */
+.aia-pbar { display: flex; align-items: center; gap: 8px; min-width: 120px; }
+.aia-pbar i { flex: 1; height: 12px; background: var(--aia-soft); border-radius: 999px; overflow: hidden; display: block; }
+.aia-pbar i b { display: block; height: 100%; border-radius: 999px; background: var(--aia-navy); }
+.aia-pbar em { font-style: normal; font-weight: 700; min-width: 2ch; text-align: right; }
+.aia-hbars { display: grid; gap: 10px; margin-bottom: 8px; }
+.aia-hbar { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 8px; align-items: center; }
+.aia-hbar .aia-hname { font-weight: 700; font-size: .9rem; overflow-wrap: anywhere; }
+.aia-hbar .aia-pbar { grid-column: 1 / -1; }
+.aia-num.sm { width: 22px; height: 22px; font-size: .75rem; display: inline-grid; vertical-align: middle; }
+.aia-ytable td:first-child, .aia-ytable th:first-child { width: 36px; text-align: center; }
+.aia-ytable input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--aia-red); cursor: pointer; }
+.aia-ytable input:disabled { cursor: not-allowed; }
+.aia-ytable td:nth-child(4) { min-width: 150px; }
+.aia-table tr.sel td { background: color-mix(in srgb, var(--yc) 8%, #fff); }
+.aia-table tr.sel td:first-child { box-shadow: inset 4px 0 0 var(--yc); }
+.aia-rank-head .aia-note { margin: 0; }
+.aia-rank-head .aia-export { margin: 0; }
+
 /* Tulostus (PDF) */
 .aia-print { display: none; }
 @media print {

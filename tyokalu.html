@@ -53,7 +53,9 @@
   <script>
     AIArviointi.mount(document.getElementById("ai-arviointi"), {
       storageKey: "kangasala-ai-arviointi",
-      hidden: ["roadmapBlock"]   // piilottaa "Kopioi tiekarttalohkona" -painikkeen; poista listasta, jos tarvitaan
+      // Piilotetut osat: tiekarttalohko-painike, Vertailu ja simulointi -välilehti sekä PDF- ja CSV-lataus.
+      // Ota osa takaisin käyttöön poistamalla se listasta.
+      hidden: ["roadmapBlock", "vertailu", "pdf", "csv"]
     });
   </script>
 </body>

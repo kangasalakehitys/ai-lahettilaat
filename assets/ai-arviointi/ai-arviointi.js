@@ -273,7 +273,7 @@
       const k = seen[key] = (seen[key] || 0) + 1;
       if (k > 1) { const a = k * 2.1; x += Math.cos(a) * 9 * Math.sqrt(k); y += Math.sin(a) * 9 * Math.sqrt(k); }
       x = clamp(x, M + 10, right - 10); y = clamp(y, top + 10, bot - 10);
-      const r = p.n === "" || p.n == null ? 9 : 11;
+      const r = p.r || (p.n === "" || p.n == null ? 9 : 11);
       h += '<g><title>' + esc(p.title || "") + "</title>" +
         '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r + '" fill="' + esc(p.c) + '" stroke="#fff" stroke-width="2"/>' +
         (p.n === "" || p.n == null ? "" : '<text x="' + x.toFixed(1) + '" y="' + (y + 4).toFixed(1) + '" font-size="11" font-weight="700" fill="' + (p.tc || "#fff") + '" text-anchor="middle">' + esc(p.n) + "</text>") + "</g>";
@@ -392,10 +392,12 @@
       scenarios: (Array.isArray(db.get("scenarios", [])) ? db.get("scenarios", []) : []).filter((x) => x && x.params),
       draft: savedDraft && savedDraft.c ? fixCase(savedDraft.c) : null,
       dirty: !!(savedDraft && savedDraft.dirty),
+      step: savedDraft && savedDraft.step ? clamp(+savedDraft.step || 1, 1, 4) : 1,
+      reached: savedDraft && savedDraft.reached ? clamp(+savedDraft.reached || 1, 1, 4) : 1,
       tab: db.get("tab", "arvioi"),
       evalStale: true,
       filt: { center: "", status: "" },
-      yfilt: "",
+      yfilt: "", ystat: "", ysortKey: "rank", ysortDir: 1,
       sel: Array.isArray(db.get("sel", null)) ? db.get("sel", null) : null,
       sortKey: "rank", sortDir: 1, topN: 5, openOnly: true, cmpA: "current", cmpB: "sim",
       ui: { centerOther: false, unitOther: false, showErrors: false, saveErr: "", saveWarn: "", lastSaved: null },
@@ -410,7 +412,7 @@
       return c;
     }
     const saveCases = () => db.set("cases", S.cases);
-    const saveDraft = () => db.set("draft", { c: S.draft, dirty: S.dirty });
+    const saveDraft = () => db.set("draft", { c: S.draft, dirty: S.dirty, step: S.step, reached: S.reached });
     const saveParams = () => db.set("params", S.params);
     const saveScen = () => db.set("scenarios", S.scenarios);
     const isSaved = () => S.cases.some((c) => c.id === S.draft.id);
@@ -423,7 +425,7 @@
       { id: "yhteenveto", label: "Yhteenveto" },
       { id: "vertailu", label: "Vertailu ja simulointi" },
       { id: "parametrit", label: "Parametrit" }
-    ];
+    ].filter((t) => t.id === "arvioi" || !hide(t.id));
     root.classList.add("aia");
     root.innerHTML =
       '<div class="aia-tabs" role="tablist" aria-label="Arviointityökalu">' + TABS.map((t) =>
@@ -431,7 +433,7 @@
         esc(t.label) + (t.id === "omat" ? ' <span class="aia-count" data-count></span>' : "") + "</button>").join("") + "</div>" +
       '<div class="aia-msg" role="status" aria-live="polite"></div>' +
       TABS.map((t) => '<div class="aia-panel" role="tabpanel" id="' + ID + "-p-" + t.id + '" aria-labelledby="' + ID + "-t-" + t.id + '" data-panel="' + t.id + '" hidden></div>').join("") +
-      '<input type="file" accept=".json,application/json" class="aia-file" hidden>' +
+      '<input type="file" accept=".json,application/json" class="aia-file" hidden multiple>' +
       typeDialogHtml();
     const $ = (s) => root.querySelector(s);
     const panel = (id) => root.querySelector('[data-panel="' + id + '"]');
@@ -484,8 +486,9 @@
     const opts = (vals, sel, ph) => (ph != null ? '<option value="">' + esc(ph) + "</option>" : "") +
       vals.map((v) => "<option" + (v === sel ? " selected" : "") + ">" + esc(v) + "</option>").join("");
     const btn = (act, label, cls, extra) => '<button type="button" class="aia-btn' + (cls ? " " + cls : "") + '" data-act="' + act + '"' + (extra || "") + ">" + label + "</button>";
-    const exportBtns = (scope) => '<div class="aia-export"><span>Lataa:</span>' +
-      btn("pdf-" + scope, "PDF", "ghost") + btn("pptx-" + scope, "PowerPoint", "ghost") + btn("csv-" + scope, "CSV", "ghost") + btn("json-" + scope, "JSON", "ghost") + "</div>";
+    const exportBtns = (scope, label) => '<div class="aia-export"><span>' + (label || "Lataa:") + "</span>" +
+      [["pdf", "PDF"], ["pptx", "PowerPoint"], ["csv", "CSV"], ["json", "JSON"]].filter((k) => !hide(k[0]))
+        .map((k) => btn(k[0] + "-" + scope, k[1], "ghost")).join("") + "</div>";
     const reqMark = '<span class="aia-req" aria-hidden="true">*</span><span class="aia-sr"> (pakollinen)</span>';
 
     function field(label, control, help, forId, req) {
@@ -555,11 +558,14 @@
       S.evalStale = false;
       initUi();
       const c = S.draft, P = S.params, u = S.ui;
+      const wnav = (k) => '<div class="aia-wnav">' + (k === 1 ? '<p class="aia-wmsg" data-wmsg role="alert"></p>' : "") +
+        (k > 1 ? btn("wprev", "← Edellinen", "ghost") : "") + (k < 4 ? btn("wnext", "Seuraava →", "primary") : "") + "</div>";
       let h = '<div class="aia-openbar" data-openbar>' + openBarHtml() + "</div>";
-      h += '<div class="aia-eval"><div class="aia-form">';
+      h += '<nav class="aia-stepper" aria-label="Arvioinnin vaiheet" data-stepper></nav>';
+      h += '<div class="aia-eval" data-cur="' + S.step + '"><div class="aia-form">';
       h += '<p class="aia-editing"><span data-editing></span> <span class="aia-reqnote">' + reqMark.replace(' aria-hidden="true"', "") .replace("(pakollinen)", "") + " = pakollinen tieto</span></p>";
 
-      h += '<section class="aia-card"><h3><span class="aia-step">1</span>Perustiedot</h3>';
+      h += '<section class="aia-card" data-wstep="1"><h3><span class="aia-step">1</span>Perustiedot</h3>';
       h += field("Käyttötapauksen nimi", '<input type="text" id="' + ID + '-name" data-f="name" data-req="name" maxlength="140" aria-required="true" value="' + esc(c.name) + '" autocomplete="off">',
         "Nimeä mahdollisimman konkreettisesti.", ID + "-name", true);
       h += '<div class="aia-row2">' +
@@ -586,9 +592,9 @@
       h += '<fieldset class="aia-privacy" data-req="privacy"><legend class="aia-lbl">Tietosuoja ja riskitaso ' + reqMark + "</legend>" + PRIVACY.map((p) =>
         '<label style="--pc:' + p.c + '"><input type="radio" name="' + ID + '-privacy" value="' + p.key + '" data-f="privacy"' + (c.privacy === p.key ? " checked" : "") + ">" +
         "<span><b>" + esc(p.label) + "</b><small>" + esc(p.desc) + "</small></span></label>").join("") + "</fieldset>";
-      h += "</section>";
+      h += wnav(1) + "</section>";
 
-      h += '<section class="aia-card"><h3><span class="aia-step">2</span>Arviointi</h3>' +
+      h += '<section class="aia-card" data-wstep="2"><h3><span class="aia-step">2</span>Arviointi</h3>' +
         '<p class="aia-note">Siirrä liukusäädintä tai valitse numero 1–5 (5 = toiminnan kannalta paras). Merkitse ★:llä enintään ' + P.maxStars +
         ' kriteeriä, jotka ovat tälle käyttötapaukselle tärkeimpiä. <b data-starcount></b></p>' + starHelp(P);
       Object.keys(GROUPS).forEach((g) => {
@@ -611,24 +617,69 @@
         });
         h += "</fieldset>";
       });
-      h += "</section>";
+      h += wnav(2) + "</section>";
 
-      h += '<section class="aia-card"><h3><span class="aia-step">3</span>Hyöty–kustannus <small class="aia-opt">valinnainen</small></h3>' +
-        '<p class="aia-note">Karkea arvio auttaa vertailemaan käyttötapauksia. Työtunnin arvo (' + fiNum(P.hourValue) + " €/h) on parametreissa.</p>" +
-        '<div class="aia-row2">' +
+      h += '<section class="aia-card" data-wstep="3"><h3><span class="aia-step">3</span>Hyöty–kustannus <small class="aia-opt">valinnainen</small></h3>' +
+        '<p class="aia-note">Karkea arvio auttaa vertailemaan käyttötapauksia. Jos et tiedä lukuja, voit jättää kentät tyhjiksi.</p>' +
+        '<div class="aia-row3">' +
         field("Säästetty työaika, tunti (h) / kk", '<input type="number" inputmode="decimal" min="0" step="1" id="' + ID + '-hours" data-f="hours" value="' + esc(c.hours) + '">', "Koko organisaatiossa yhteensä.", ID + "-hours") +
         field("Kustannusarvio, € / vuosi", '<input type="number" inputmode="decimal" min="0" step="100" id="' + ID + '-cost" data-f="cost" value="' + esc(c.cost) + '">', "Lisenssit, kehitys ja ylläpito.", ID + "-cost") +
-        "</div></section>";
+        field("Työtunnin arvo, € / h", '<input type="number" inputmode="decimal" min="0" max="1000" step="1" id="' + ID + '-hv" data-hv value="' + P.hourValue + '">',
+          "Koskee kaikkia arviointeja. Oletus " + fiNum(DEF.hourValue) + " €/h.", ID + "-hv") +
+        "</div>" + wnav(3) + "</section>";
+      h += '<section class="aia-card" data-wstep="4"><h3><span class="aia-step">4</span>Tulos ja tallennus</h3><div data-summary></div>' + wnav(4) + "</section>";
       h += "</div>";
 
       h += '<aside class="aia-result" aria-label="Tulos"><div data-result></div>' +
-        '<div class="aia-actions">' + btn("save", "Tallenna arviointi", "primary", " data-savebtn") +
+        '<p class="aia-note aia-r13">Tulos päivittyy sitä mukaa kuin täytät tietoja. Tallennus tehdään vaiheessa 4.</p>' +
+        '<div class="aia-r4"><div class="aia-actions">' + btn("save", "Tallenna arviointi", "primary", " data-savebtn") +
         btn("save-new", "Tallenna uutena", "", " data-savenew hidden") +
         (hide("roadmapBlock") ? "" : btn("copy-block", "Kopioi tiekarttalohkona", "", ' title="Valmis lohko content/tiekartta.md-tiedostoon"')) + "</div>" +
         '<p class="aia-savestate" data-savestate role="status" aria-live="polite"></p>' +
-        exportBtns("one") + '<div data-block></div></aside></div>';
+        exportBtns("one") + '<div data-block></div></div></aside></div>';
       panel("arvioi").innerHTML = h;
       updateResult();
+      applyStep(false);
+    }
+
+    const STEPS = ["Perustiedot", "Arviointi", "Hyöty–kustannus", "Tulos ja tallennus"];
+
+    function applyStep(scroll) {
+      const pnl = panel("arvioi"), nav = pnl.querySelector("[data-stepper]");
+      if (!nav) return;
+      pnl.querySelectorAll("[data-wstep]").forEach((sec) => { sec.hidden = +sec.dataset.wstep !== S.step; });
+      pnl.querySelector(".aia-eval").dataset.cur = String(S.step);
+      nav.innerHTML = "<ol>" + STEPS.map((t, i) => {
+        const k = i + 1, cur = k === S.step, done = !cur && (k < S.step || k < S.reached), open = cur || k <= S.reached;
+        return '<li class="' + (cur ? "cur" : "") + '"><button type="button" data-wgo="' + k + '" class="' + (cur ? "cur" : done ? "done" : "") + '"' +
+          (cur ? ' aria-current="step"' : "") + (open ? "" : " disabled") + ' aria-label="Vaihe ' + k + ": " + t + (done ? " (valmis)" : "") + '">' +
+          '<span class="n">' + (done ? "✓" : k) + '</span><span class="t">' + t + "</span></button></li>";
+      }).join("") + "</ol>";
+      if (S.step === 4) renderStepSummary();
+      if (scroll && nav.scrollIntoView) nav.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function goStep(k) {
+      k = clamp(k, 1, 4);
+      if (k === S.step) return;
+      if (k > 1 && S.step === 1 && !validate(true)) { msg("Täytä ensin pakolliset perustiedot.", "error"); return; }
+      S.step = k; S.reached = Math.max(S.reached, k);
+      saveDraft(); applyStep(true);
+    }
+
+    function renderStepSummary() {
+      const el = panel("arvioi").querySelector("[data-summary]");
+      if (!el) return;
+      const c = S.draft, pr = privacyOf(c.privacy), e = evaluate(c, S.params);
+      const stars = S.params.criteria.filter((cr) => c.stars.indexOf(cr.id) >= 0).map((cr) => cr.name);
+      const rows = [["Käyttötapaus", c.name], [CENTER_LBL + " · yksikkö", [c.center, c.unit].filter(Boolean).join(" · ")], ["Omistaja", c.owner], ["Tyyppi", c.type]]
+        .concat(showStatus ? [["Tila", c.status]] : [])
+        .concat([["Tietosuoja", pr ? pr.label + " – " + pr.desc : ""]])
+        .concat(showJory ? [["Jory-huomio", c.jory ? "Kyllä, vaatii johtoryhmän päätöstä" : "Ei"]] : [])
+        .concat([["Ongelma ja tavoite", c.problem], ["Miten tekoäly auttaa", c.aiHelp], ["★ Avainkriteerit", stars.join(", ")],
+          ["Hyöty–kustannus", e.benefit > 0 || e.cost > 0 ? fiNum(e.benefit) + " € / v työajan arvo, " + fiNum(e.cost) + " € / v kustannus" + (e.ratio != null ? " (" + fiNum(e.ratio, 1) + "×)" : "") : ""]]);
+      el.innerHTML = '<p class="aia-note">Tarkista tiedot ja tallenna. Voit palata muokkaamaan vaihetta painamalla sen numeroa yllä.</p>' +
+        '<dl class="aia-sumlist">' + rows.map((r) => "<div><dt>" + esc(r[0]) + "</dt><dd>" + (r[1] ? esc(r[1]) : '<span class="aia-muted">–</span>') + "</dd></div>").join("") + "</dl>";
     }
 
     function updateResult() {
@@ -673,6 +724,7 @@
       else if (saved) { cls = "ok"; t = "✓ Tallennettu" + (u.lastSaved ? " klo " + fiTime(u.lastSaved) : " " + fiDate(new Date(S.draft.updated))) + "."; }
       el.className = "aia-savestate " + cls;
       el.textContent = t;
+      const wm = pnl.querySelector("[data-wmsg]"); if (wm) wm.textContent = u.saveErr || "";
     }
 
     function checkRequired() {
@@ -735,6 +787,7 @@
       if (!c) return false;
       if (S.dirty && S.draft.id !== id && !global.confirm("Avoimessa arvioinnissa on tallentamattomia muutoksia. Hylätäänkö ne?")) { refreshOpenBar(); return false; }
       S.draft = clone(c); S.dirty = false; S.ui.lastSaved = null; S.ui.saveWarn = "";
+      S.step = 1; S.reached = 4;
       saveDraft(); S.evalStale = true;
       showTab(tabAfter || "arvioi");
       return true;
@@ -790,7 +843,7 @@
       panel("omat").innerHTML = h;
     }
 
-    /* ---------- Yhteenveto (enintään 4 käyttötapausta) ---------- */
+    /* ---------- Yhteenveto: koko organisaation tarkastelu ---------- */
     function selection() {
       const ids = S.cases.map((c) => c.id);
       if (!S.sel) S.sel = ranked(S.params, S.cases).slice(0, MAX_SEL).map((it) => it.c.id);
@@ -798,49 +851,94 @@
       return S.sel;
     }
     const selCases = () => selection().map((id) => S.cases.find((c) => c.id === id)).filter(Boolean);
+    function filteredY() {
+      return S.cases.filter((c) => (!S.yfilt || c.center === S.yfilt) && (!showStatus || !S.ystat || c.status === S.ystat));
+    }
+    const pbar = (v, col) => '<span class="aia-pbar"><i><b style="width:' + r0(v) + "%" + (col ? ";background:" + col : "") + '"></b></i><em>' + r0(v) + "</em></span>";
+    const selNum = (k) => '<span class="aia-num sm" style="background:' + SEL_COLORS[k] + (SEL_COLORS[k] === "#fcb316" ? ";color:#1d1d1f" : "") + '">' + (k + 1) + "</span>";
 
     function renderSummary() {
       const P = S.params;
-      let h = '<p class="aia-lead">Valitse enintään ' + MAX_SEL + " käyttötapausta ja vertaa niitä nelikentässä, tutkakaaviossa ja rinnakkain.</p>";
+      let h = '<p class="aia-lead">Tarkastele organisaation kaikkia käyttötapauksia yhdessä. Tuo yksiköiden JSON-tiedostot (voit valita useita kerralla), ' +
+        "suodata ja valitse enintään " + MAX_SEL + " käyttötapausta tarkempaan vertailuun.</p>";
+      h += '<div class="aia-toolbar">' +
+        "<label>" + CENTER_LBL + "<select data-yfilt>" + opts(centerNames(), S.yfilt, "Kaikki") + "</select></label>" +
+        (showStatus ? "<label>Tila<select data-ystat>" + opts(o.statuses.map((x) => x.label), S.ystat, "Kaikki") + "</select></label>" : "") +
+        '<div class="aia-tb-btns">' + btn("import-multi", "Tuo yksiköiden tulokset (JSON)", "primary") + "</div></div>";
       if (!S.cases.length) {
-        panel("yhteenveto").innerHTML = h + '<div class="aia-empty">Ei vielä tallennettuja arviointeja. Tee arviointi <button type="button" class="aia-link" data-act="goto-arvioi">Arvioi</button>-välilehdellä tai tuo JSON-tiedosto.</div>';
+        panel("yhteenveto").innerHTML = h + '<div class="aia-empty">Ei vielä arviointeja. Tuo yksiköiden JSON-tiedostot yllä olevalla painikkeella ' +
+          'tai tee arviointi <button type="button" class="aia-link" data-act="goto-arvioi">Arvioi</button>-välilehdellä.</div>';
         return;
       }
       const sel = selection(), full = sel.length >= MAX_SEL;
-      const pool = ranked(P, S.cases.filter((c) => !S.yfilt || c.center === S.yfilt || sel.indexOf(c.id) >= 0));
-      h += '<div class="aia-card"><div class="aia-rank-head"><h3>Valitse vertailtavat (' + sel.length + " / " + MAX_SEL + ")</h3>" +
-        '<label class="aia-small-sel">' + CENTER_LBL + ' <select data-yfilt>' + opts(centerNames(), S.yfilt, "Kaikki") + "</select></label></div>" +
-        '<ul class="aia-pick">' + pool.map((it) => {
-          const k = sel.indexOf(it.c.id), on = k >= 0;
-          return '<li><label class="' + (on ? "on" : "") + '"' + (on ? ' style="--yc:' + SEL_COLORS[k] + '"' : "") + '><input type="checkbox" data-ysel="' + esc(it.c.id) + '"' + (on ? " checked" : "") + (!on && full ? " disabled" : "") + ">" +
-            (on ? '<span class="aia-num" style="background:' + SEL_COLORS[k] + (SEL_COLORS[k] === "#fcb316" ? ";color:#1d1d1f" : "") + '">' + (k + 1) + "</span>" : '<span class="aia-num empty"></span>') +
-            "<span><b>" + esc(it.c.name || "(nimetön)") + '</b><small class="aia-where">' + esc([it.c.center, it.c.unit].filter(Boolean).join(" · ")) + " · prioriteetti " + r0(it.e.prio) + "</small></span></label></li>";
-        }).join("") + "</ul>" +
-        (full ? '<p class="aia-note">Enintään ' + MAX_SEL + " valintaa. Poista ensin jokin valinta, jos haluat vaihtaa.</p>" : "") + "</div>";
-      const cs = selCases();
-      if (!cs.length) { panel("yhteenveto").innerHTML = h + '<div class="aia-empty">Valitse vähintään yksi käyttötapaus.</div>'; return; }
-      const ev = cs.map((c) => evaluate(c, P));
-      h += exportBtns("sel");
-      h += '<div class="aia-grid2"><div class="aia-card"><h3>Nelikenttä</h3>' +
-        quadrantSvg(cs.map((c, i) => ({ x: ev[i].effort, y: ev[i].impact, n: i + 1, c: SEL_COLORS[i], tc: SEL_COLORS[i] === "#fcb316" ? "#1d1d1f" : "#fff", title: (i + 1) + ". " + c.name })), P, "Valitut käyttötapaukset nelikentässä") +
-        '</div><div class="aia-card"><h3>Tutkakaavio</h3>' +
-        radarSvg(cs.map((c, i) => ({ color: SEL_COLORS[i], name: (i + 1) + ". " + c.name, vals: radarVals(c, ev[i]) }))) +
-        '<ul class="aia-legend">' + cs.map((c, i) => '<li><i style="background:' + SEL_COLORS[i] + '"></i>' + (i + 1) + ". " + esc(c.name) + "</li>").join("") + "</ul></div></div>";
-      h += '<div class="aia-ycards">' + cs.map((c, i) => {
-        const e = ev[i], pr = privacyOf(c.privacy);
-        const stars = S.params.criteria.filter((cr) => c.stars.indexOf(cr.id) >= 0).map((cr) => cr.name);
-        return '<article class="aia-ycard" style="--yc:' + SEL_COLORS[i] + '"><div class="aia-ycard-head"><span class="aia-num" style="background:' + SEL_COLORS[i] +
-          (SEL_COLORS[i] === "#fcb316" ? ";color:#1d1d1f" : "") + '">' + (i + 1) + "</span><h4>" + esc(c.name || "(nimetön)") + "</h4></div>" +
-          '<p class="aia-where">' + esc([c.center, c.unit, c.type].filter(Boolean).join(" · ")) + "</p>" +
-          '<div class="aia-prio sm"><b>' + r0(e.prio) + "</b><span>Prioriteetti / 100</span></div>" +
-          '<span class="aia-quadchip" style="--qc:' + e.quad.c + '">' + esc(e.quad.label) + "</span>" +
-          barsHtml(e) +
-          '<p class="aia-yline"><b>Tietosuoja:</b> ' + (pr ? '<i class="aia-dot" style="background:' + pr.c + '"></i>' + esc(pr.label) : "–") + "</p>" +
-          '<p class="aia-yline"><b>★ Avainkriteerit:</b> ' + (stars.length ? esc(stars.join(", ")) : "–") + "</p>" +
-          (c.problem ? '<p class="aia-yline"><b>Ongelma ja tavoite:</b> ' + esc(c.problem) + "</p>" : "") +
-          '<p class="aia-yline"><b>Suositus:</b> ' + esc(e.recs[0]) + "</p>" +
-          btn("open", "Avaa muokattavaksi", "small", ' data-id="' + esc(c.id) + '"') + "</article>";
-      }).join("") + "</div>";
+      const pool = ranked(P, filteredY());
+      if (!pool.length) { panel("yhteenveto").innerHTML = h + '<div class="aia-empty">Ei käyttötapauksia valituilla suodattimilla.</div>'; return; }
+      h += exportBtns("yall", "Lataa kaikki suodatetut (" + pool.length + "):");
+      const cs = selCases(), ev = cs.map((c) => evaluate(c, P));
+
+      h += '<div class="aia-grid2"><div class="aia-card"><h3>Nelikenttä – ' + pool.length + " käyttötapaus" + (pool.length === 1 ? "" : "ta") + "</h3>" +
+        quadrantSvg(pool.map((it, i) => {
+          const k = sel.indexOf(it.c.id);
+          return { x: it.e.effort, y: it.e.impact, n: i + 1, c: k >= 0 ? SEL_COLORS[k] : "#8a8c94", tc: k >= 0 && SEL_COLORS[k] === "#fcb316" ? "#1d1d1f" : "#fff",
+            r: k >= 0 ? 13 : 10, title: (i + 1) + ". " + it.c.name + " – " + r0(it.e.prio) + " p." };
+        }), P, "Nelikenttä: kaikki suodatetut käyttötapaukset") +
+        '<p class="aia-note">Numero = sijoitus prioriteettijärjestyksessä. Värilliset = valittu vertailuun, harmaat = muut. Vie hiiri pallon päälle nähdäksesi nimen.</p></div>';
+      h += '<div class="aia-card"><h3>Valitut vertailuun (' + cs.length + " / " + MAX_SEL + ")</h3>";
+      if (cs.length) {
+        h += '<h4 class="aia-sub">Kokonaispisteet</h4><div class="aia-hbars">' + cs.map((c, i) =>
+          '<div class="aia-hbar">' + selNum(i) + '<span class="aia-hname">' + esc(c.name || "(nimetön)") + "</span>" + pbar(ev[i].prio, SEL_COLORS[i]) + "</div>").join("") + "</div>" +
+          '<h4 class="aia-sub">Tutkakaavio</h4>' +
+          radarSvg(cs.map((c, i) => ({ color: SEL_COLORS[i], name: (i + 1) + ". " + c.name, vals: radarVals(c, ev[i]) }))) +
+          '<ul class="aia-legend">' + cs.map((c, i) => '<li><i style="background:' + SEL_COLORS[i] + '"></i>' + (i + 1) + ". " + esc(c.name) + "</li>").join("") + "</ul>";
+      } else h += '<p class="aia-note">Valitse käyttötapauksia alla olevasta taulukosta.</p>';
+      h += "</div></div>";
+
+      // Prioriteettijärjestys
+      const rows = pool.map((it, i) => ({ c: it.c, e: it.e, rank: i + 1 }));
+      const key = S.ysortKey, dir = S.ysortDir;
+      const val = {
+        rank: (r) => r.rank, name: (r) => r.c.name, prio: (r) => r.e.prio, impact: (r) => r.e.impact, effort: (r) => r.e.effort,
+        risk: (r) => r.e.risk, ratio: (r) => (r.e.ratio == null ? -1 : r.e.ratio), status: (r) => r.c.status
+      }[key] || ((r) => r.rank);
+      rows.sort((a, b) => { const x = val(a), y = val(b); return (typeof x === "string" ? x.localeCompare(y, "fi") : x - y) * dir || a.rank - b.rank; });
+      const cols = [["rank", "#"], ["name", "Käyttötapaus"], ["prio", "Kokonaispisteet"], ["impact", "Vaikutus"], ["effort", "Työmäärä"], ["risk", "Riski"], ["ratio", "Hyöty / kust."]]
+        .concat(showStatus ? [["status", "Tila"]] : []);
+      h += '<div class="aia-card"><div class="aia-rank-head"><h3>Prioriteettijärjestys</h3><p class="aia-note">Valitse ruudusta enintään ' + MAX_SEL +
+        " vertailuun" + (full ? " – poista ensin jokin valinta, jos haluat vaihtaa" : "") + ".</p></div>" +
+        '<div class="aia-tablewrap"><table class="aia-table aia-ytable"><thead><tr><th scope="col"><span class="aia-sr">Vertailuun</span>☐</th>' + cols.map((c) =>
+          '<th scope="col" aria-sort="' + (key === c[0] ? (dir > 0 ? "ascending" : "descending") : "none") + '"><button type="button" data-ysort="' + c[0] + '">' + c[1] +
+          (key === c[0] ? (dir > 0 ? " ↑" : " ↓") : "") + "</button></th>").join("") + "</tr></thead><tbody>";
+      rows.forEach((r) => {
+        const k = sel.indexOf(r.c.id), on = k >= 0;
+        h += '<tr class="' + (r.rank <= 5 ? "top" : "") + (on ? " sel" : "") + '"' + (on ? ' style="--yc:' + SEL_COLORS[k] + '"' : "") + ">" +
+          '<td><input type="checkbox" data-ysel="' + esc(r.c.id) + '" aria-label="Valitse vertailuun: ' + esc(r.c.name) + '"' + (on ? " checked" : "") + (!on && full ? " disabled" : "") + "></td>" +
+          "<td><b>" + r.rank + "</b>" + (on ? " " + selNum(k) : "") + "</td>" +
+          "<td>" + esc(r.c.name || "(nimetön)") + '<small class="aia-where">' + esc([r.c.center, r.c.unit].filter(Boolean).join(" · ")) + "</small></td>" +
+          "<td>" + pbar(r.e.prio, on ? SEL_COLORS[k] : null) + "</td><td>" + r0(r.e.impact) + "</td><td>" + r0(r.e.effort) + "</td><td>" + r0(r.e.risk) + "</td>" +
+          "<td>" + (r.e.ratio == null ? "–" : fiNum(r.e.ratio, 1) + "×") + "</td>" +
+          (showStatus ? '<td><span class="aia-dot" style="background:' + statusColor(r.c.status) + '"></span>' + esc(r.c.status) + "</td>" : "") + "</tr>";
+      });
+      h += '</tbody></table></div><p class="aia-note">Korostettu = 5 parasta. Järjestä klikkaamalla otsikkoa.</p></div>';
+
+      if (cs.length) {
+        h += '<div class="aia-rank-head"><h3 class="aia-sub">Valitut rinnakkain</h3>' + exportBtns("sel", "Lataa valitut:") + "</div>";
+        h += '<div class="aia-ycards">' + cs.map((c, i) => {
+          const e = ev[i], pr = privacyOf(c.privacy);
+          const stars = S.params.criteria.filter((cr) => c.stars.indexOf(cr.id) >= 0).map((cr) => cr.name);
+          return '<article class="aia-ycard" style="--yc:' + SEL_COLORS[i] + '"><div class="aia-ycard-head">' + selNum(i) + "<h4>" + esc(c.name || "(nimetön)") + "</h4></div>" +
+            '<p class="aia-where">' + esc([c.center, c.unit, c.type].filter(Boolean).join(" · ")) + "</p>" +
+            '<div class="aia-prio sm"><b>' + r0(e.prio) + "</b><span>Kokonaispisteet / 100</span></div>" +
+            '<span class="aia-quadchip" style="--qc:' + e.quad.c + '">' + esc(e.quad.label) + "</span>" +
+            barsHtml(e) +
+            (showStatus ? '<p class="aia-yline"><b>Tila:</b> ' + esc(c.status || "–") + "</p>" : "") +
+            '<p class="aia-yline"><b>Tietosuoja:</b> ' + (pr ? '<i class="aia-dot" style="background:' + pr.c + '"></i>' + esc(pr.label) : "–") + "</p>" +
+            (showJory && c.jory ? '<p class="aia-yline"><b>Jory-huomio:</b> vaatii johtoryhmän päätöstä</p>' : "") +
+            '<p class="aia-yline"><b>★ Avainkriteerit:</b> ' + (stars.length ? esc(stars.join(", ")) : "–") + "</p>" +
+            (c.problem ? '<p class="aia-yline"><b>Ongelma ja tavoite:</b> ' + esc(c.problem) + "</p>" : "") +
+            '<p class="aia-yline"><b>Suositus:</b> ' + esc(e.recs[0]) + "</p>" +
+            btn("open", "Avaa muokattavaksi", "small", ' data-id="' + esc(c.id) + '"') + "</article>";
+        }).join("") + "</div>";
+      }
       panel("yhteenveto").innerHTML = h;
     }
 
@@ -1012,48 +1110,73 @@
     }
 
     /* ---------- Tuonti ---------- */
-    function importJson(text, target) {
-      let obj;
-      try { obj = JSON.parse(text); } catch (e) { msg("Tiedosto ei ole kelvollista JSONia: " + e.message, "error"); return; }
-      if (obj && obj.type === PARAM_TYPE) {
-        try { setParams(normalizeParams(obj, DEF), "Parametrit tuotu: " + (obj.name || "nimetön") + "."); }
-        catch (err) { msg("Parametreja ei tuotu: " + err.message + " Nykyiset parametrit säilyivät.", "error"); }
+    // files = [{ name, text }]; target: "one" (Arvioi), "multi" (Yhteenveto) tai "" (muut)
+    function importFiles(files, target) {
+      let added = 0, updated = 0, skipped = 0, paramsDone = "";
+      const ids = [], errors = [];
+      let paramsCandidate = null;
+      files.forEach((f) => {
+        const label = f.name ? f.name + ": " : "";
+        let obj;
+        try { obj = JSON.parse(f.text); } catch (e) { errors.push(label + "ei kelvollista JSONia"); return; }
+        if (obj && obj.type === PARAM_TYPE) {
+          try { setParams(normalizeParams(obj, DEF)); paramsDone = obj.name || "nimetön"; }
+          catch (err) { errors.push(label + "parametreja ei tuotu (" + err.message + ")"); }
+          return;
+        }
+        let list;
+        if (Array.isArray(obj)) list = obj;
+        else if (obj && Array.isArray(obj.cases)) list = obj.cases;
+        else if (obj && typeof obj === "object" && (obj.name != null || obj.scores)) list = [obj];
+        else { errors.push(label + "ei arviointeja eikä parametreja"); return; }
+        list.forEach((raw) => {
+          if (!raw || typeof raw !== "object") { skipped++; return; }
+          const c = fixCase(raw);
+          ids.push(c.id);
+          const i = S.cases.findIndex((x) => x.id === c.id);
+          if (i < 0) { S.cases.push(c); added++; }
+          else if (c.updated > S.cases[i].updated) { S.cases[i] = c; updated++; }
+          else skipped++;
+        });
+        if (obj && obj.params && !paramsCandidate && JSON.stringify(obj.params) !== JSON.stringify(S.params)) paramsCandidate = obj.params;
+      });
+      if (!ids.length && !paramsDone) {
+        msg((errors.length ? errors.join(" · ") : "Tiedostosta ei löytynyt arviointeja.") + (paramsDone ? "" : " Nykyiset tiedot säilyivät."), "error");
+        return;
+      }
+      if (!ids.length && paramsDone) {
+        msg("Parametrit tuotu: " + paramsDone + "." + (errors.length ? " Ohitettiin: " + errors.join(" · ") : ""), errors.length ? "warn" : "ok");
         showTab(S.tab); return;
       }
-      let list;
-      if (Array.isArray(obj)) list = obj;
-      else if (obj && Array.isArray(obj.cases)) list = obj.cases;
-      else if (obj && typeof obj === "object" && (obj.name != null || obj.scores)) list = [obj];
-      else { msg("Tiedostosta ei löytynyt arviointeja eikä parametreja.", "error"); return; }
-      let added = 0, updated = 0, skipped = 0;
-      const ids = [];
-      list.forEach((raw) => {
-        if (!raw || typeof raw !== "object") { skipped++; return; }
-        const c = fixCase(raw);
-        ids.push(c.id);
-        const i = S.cases.findIndex((x) => x.id === c.id);
-        if (i < 0) { S.cases.push(c); added++; }
-        else if (c.updated > S.cases[i].updated) { S.cases[i] = c; updated++; }
-        else skipped++;
-      });
       const stored = saveCases(); updateCount();
-      let note = "Tuotu: " + added + " uutta, " + updated + " päivitettyä" + (skipped ? ", " + skipped + " ennallaan (sama tai vanhempi versio)" : "") + ".";
+      let note = (files.length > 1 ? files.length + " tiedostoa – " : "") + "tuotu: " + added + " uutta, " + updated + " päivitettyä" +
+        (skipped ? ", " + skipped + " ennallaan (sama tai vanhempi versio)" : "") + ".";
+      note = note.charAt(0).toUpperCase() + note.slice(1);
+      if (errors.length) note += " Ohitettiin: " + errors.join(" · ") + ".";
       if (!stored) note += " Huom: selain esti tallennuksen, tiedot ovat tallessa vain tämän sivun ollessa auki.";
-      if (obj && obj.params && JSON.stringify(obj.params) !== JSON.stringify(S.params)) {
-        if (global.confirm("Tiedostossa on myös arvioinnin parametrit (\"" + (obj.params.name || "nimetön") + "\").\nOtetaanko ne käyttöön?\n\nPeruuta = säilytä nykyiset parametrit.")) {
-          try { setParams(normalizeParams(obj.params, DEF)); note += " Parametrit otettiin käyttöön."; }
+      if (paramsDone) note += " Parametrit tuotu: " + paramsDone + ".";
+      else if (paramsCandidate) {
+        if (global.confirm("Tuoduissa tiedostoissa on myös arvioinnin parametrit (\"" + (paramsCandidate.name || "nimetön") + "\").\nOtetaanko ne käyttöön?\n\nPeruuta = säilytä nykyiset parametrit.")) {
+          try { setParams(normalizeParams(paramsCandidate, DEF)); note += " Parametrit otettiin käyttöön."; }
           catch (err) { note += " Parametreja ei voitu ottaa käyttöön: " + err.message; }
         }
       }
-      msg(note, "ok");
-      if (ids.length === 1) {
+      msg(note, errors.length ? "warn" : "ok");
+      if (target === "multi") {
+        const cur = selection().slice();
+        ranked(S.params, S.cases.filter((c) => ids.indexOf(c.id) >= 0)).forEach((it) => {
+          if (cur.length < MAX_SEL && cur.indexOf(it.c.id) < 0) cur.push(it.c.id);
+        });
+        S.sel = cur; db.set("sel", S.sel);
+        S.evalStale = true; showTab("yhteenveto");
+      } else if (ids.length === 1) {
         if (openCase(ids[0], "arvioi")) msg(note + " Arviointi avattiin.", "ok");
         else showTab(S.tab);
-      } else if (ids.length > 1) {
+      } else {
         S.sel = ranked(S.params, S.cases.filter((c) => ids.indexOf(c.id) >= 0)).slice(0, MAX_SEL).map((it) => it.c.id);
         db.set("sel", S.sel);
         S.evalStale = true;
-        showTab(target === "one" ? "yhteenveto" : (S.tab === "arvioi" ? "yhteenveto" : S.tab));
+        showTab(target === "one" || S.tab === "arvioi" ? "yhteenveto" : S.tab);
       }
     }
 
@@ -1255,6 +1378,8 @@
       if (t === dialog) { dialog.close(); return; }   // taustan klikkaus sulkee
       const tab = t.closest("[data-tab]");
       if (tab) { showTab(tab.dataset.tab); return; }
+      const wgo = t.closest("[data-wgo]");
+      if (wgo) { goStep(+wgo.dataset.wgo); return; }
       const step = t.closest("[data-step]");
       if (step) { setScore(+step.dataset.step, +step.dataset.v); return; }
       const star = t.closest("[data-star]");
@@ -1270,6 +1395,12 @@
         star.setAttribute("aria-pressed", String(c.stars.indexOf(cr.id) >= 0));
         touch(); return;
       }
+      const ysortB = t.closest("[data-ysort]");
+      if (ysortB) {
+        const k = ysortB.dataset.ysort;
+        if (S.ysortKey === k) S.ysortDir = -S.ysortDir; else { S.ysortKey = k; S.ysortDir = k === "rank" || k === "name" || k === "effort" || k === "risk" || k === "status" ? 1 : -1; }
+        renderSummary(); return;
+      }
       const sortB = t.closest("[data-sort]");
       if (sortB) {
         const k = sortB.dataset.sort;
@@ -1282,6 +1413,8 @@
       const find = () => S.cases.find((c) => c.id === id);
       switch (act) {
         case "goto-arvioi": showTab("arvioi"); break;
+        case "wprev": goStep(S.step - 1); break;
+        case "wnext": goStep(S.step + 1); break;
         case "goto-omat": showTab("omat"); break;
         case "type-info":
           if (typeof dialog.showModal === "function") dialog.showModal(); else dialog.setAttribute("open", "");
@@ -1312,7 +1445,7 @@
         }
         case "new":
           if (S.dirty && !global.confirm("Hylätäänkö tallentamattomat muutokset?")) break;
-          S.draft = newCase(); S.dirty = false; S.ui.lastSaved = null; S.ui.saveWarn = ""; saveDraft(); renderEval();
+          S.draft = newCase(); S.dirty = false; S.ui.lastSaved = null; S.ui.saveWarn = ""; S.step = 1; S.reached = 1; saveDraft(); renderEval();
           { const n = root.querySelector("#" + ID + "-name"); if (n) n.focus(); }
           break;
         case "copy-block": {
@@ -1329,10 +1462,12 @@
           runExport(act.split("-")[0], [S.draft], S.draft.name); break;
         case "pdf-list": case "pptx-list": case "csv-list": case "json-list":
           runExport(act.split("-")[0], filtered(), "AI-käyttötapausten salkku"); break;
+        case "pdf-yall": case "pptx-yall": case "csv-yall": case "json-yall":
+          runExport(act.split("-")[0], ranked(S.params, filteredY()).map((it) => it.c), "AI-käyttötapausten yhteenveto"); break;
         case "pdf-sel": case "pptx-sel": case "csv-sel": case "json-sel":
           runExport(act.split("-")[0], selCases(), "AI-käyttötapausten vertailu", true); break;
-        case "import": case "params-ul": case "import-one":
-          S.importTarget = act === "import-one" ? "one" : "";
+        case "import": case "params-ul": case "import-one": case "import-multi":
+          S.importTarget = act === "import-one" ? "one" : act === "import-multi" ? "multi" : "";
           fileInput.value = ""; fileInput.click(); break;
         case "open":
           if (openCase(id)) root.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1409,15 +1544,23 @@
     root.addEventListener("change", (ev) => {
       const t = ev.target;
       if (t === fileInput) {
-        const file = fileInput.files && fileInput.files[0]; if (!file) return;
+        const list = Array.from(fileInput.files || []); if (!list.length) return;
         const target = S.importTarget;
-        const rd = new FileReader();
-        rd.onload = () => importJson(String(rd.result || ""), target);
-        rd.onerror = () => msg("Tiedoston lukeminen epäonnistui.", "error");
-        rd.readAsText(file, "utf-8");
+        Promise.all(list.map((file) => new Promise((res) => {
+          const rd = new FileReader();
+          rd.onload = () => res({ name: file.name, text: String(rd.result || "") });
+          rd.onerror = () => res({ name: file.name, text: "" });
+          rd.readAsText(file, "utf-8");
+        }))).then((files) => importFiles(files, target));
         return;
       }
       if (t.matches("[data-open]")) { if (t.value) openCase(t.value); return; }
+      if (t.matches("[data-hv]")) {
+        editParams((P) => { P.hourValue = Number(t.value); });
+        S.evalStale = false;
+        t.value = S.params.hourValue;
+        updateResult(); return;
+      }
       if (t.dataset.f) {
         const k = t.dataset.f, pnl = panel("arvioi"), u = S.ui;
         if (k === "jory") S.draft.jory = t.checked;
@@ -1442,6 +1585,7 @@
       }
       if (t.dataset.filt) { S.filt[t.dataset.filt] = t.value; renderList(); return; }
       if (t.matches("[data-yfilt]")) { S.yfilt = t.value; renderSummary(); return; }
+      if (t.matches("[data-ystat]")) { S.ystat = t.value; renderSummary(); return; }
       if (t.dataset.ysel) {
         const sel = selection(), i = sel.indexOf(t.dataset.ysel);
         if (t.checked && i < 0) { if (sel.length >= MAX_SEL) { t.checked = false; msg("Voit valita enintään " + MAX_SEL + " käyttötapausta.", "warn"); return; } sel.push(t.dataset.ysel); }

@@ -66,9 +66,11 @@ Työkalu on oma komponenttinsa kansiossa `assets/ai-arviointi/` (`ai-arviointi.j
 - Arvioinnit tallentuvat vain käyttäjän omaan selaimeen. Mitään ei lähetetä palvelimelle.
 - Tulokset viedään PDF-, PowerPoint-, CSV- (Excel, Microsoft Lists) tai JSON-muodossa. JSON-tiedoston voi tuoda takaisin, joten AI-lähettiläs voi koota yksiköiden arvioinnit yhteen.
 - **Parametrit** (kriteerit, painot, nelikentän rajat, riskivähennykset, työtunnin arvo) ladataan ja tuodaan omana JSON-tiedostonaan. Kriteerejä voi olla enintään 15. Uuden kriteerin saa lisäämällä tiedoston `criteria`-listaan rivin, jossa on `id`, `group` (`hyoty`, `toteutus` tai `riski`), `name`, `help`, `lo`, `hi` ja `weight` (0–3).
-- *Vertailu ja simulointi* -välilehdellä painotuksia voi kokeilla ja tallentaa skenaarioiksi.
+- *Yhteenveto*-välilehdelle voi tuoda useita JSON-tiedostoja kerralla (esim. kaikkien yksiköiden tulokset). Se näyttää kaikki käyttötapaukset nelikentässä ja prioriteettijärjestyksessä kokonaispisteineen, ja enintään 4 valittua tarkemmin.
+- *Vertailu ja simulointi* -välilehdellä painotuksia voi kokeilla ja tallentaa skenaarioiksi (piilotettu Kangasalan sivulla).
 - `mount`-asetuksilla voi vaihtaa mm. palvelukeskukset/osastot ja yksiköt (`centers`), tilat (`statuses`), tyypit ja niiden ohjetekstit (`types`, `typeInfo`) ja oletusparametrit (`params`).
-- `hidden` piilottaa osia: `"status"` (Tila), `"jory"` (Jory-huomio) ja `"roadmapBlock"` (*Kopioi tiekarttalohkona*). Kangasalan sivulla (`tyokalu.html`) piilossa on vain tiekarttalohko-painike.
+- `hidden` piilottaa osia: `"status"` (Tila), `"jory"` (Jory-huomio), `"roadmapBlock"` (*Kopioi tiekarttalohkona*), `"vertailu"` (*Vertailu ja simulointi* -välilehti) sekä latausmuodot `"pdf"`, `"csv"`, `"pptx"` ja `"json"`. Kangasalan sivulla (`tyokalu.html`) piilossa ovat tiekarttalohko, Vertailu ja simulointi sekä PDF- ja CSV-lataus.
+- Arviointi etenee neljässä vaiheessa (stepper). Työtunnin arvoa voi muuttaa vaiheessa 3; muutos koskee kaikkia arviointeja.
 - Pakolliset tiedot: nimi, palvelukeskus/osasto, yksikkö (jos palvelukeskuksella on yksiköitä), ongelma ja tavoite, miten tekoäly auttaa sekä tietosuojataso. Palvelukeskukselle ja yksikölle voi valita *Muu* ja kirjoittaa oman nimen.
 
 ## Esikatselu omalla koneella
