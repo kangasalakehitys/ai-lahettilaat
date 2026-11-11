@@ -71,8 +71,10 @@ Työkalu on oma komponenttinsa kansiossa `assets/ai-arviointi/` (`ai-arviointi.j
 - `mount`-asetuksilla voi vaihtaa mm. palvelukeskukset/osastot ja yksiköt (`centers`), tilat (`statuses`), tyypit ja niiden ohjetekstit (`types`, `typeInfo`) ja oletusparametrit (`params`).
 - `hidden` piilottaa osia: `"status"` (Tila), `"jory"` (Jory-huomio), `"roadmapBlock"` (*Kopioi tiekarttalohkona*), `"vertailu"` (*Vertailu ja simulointi* -välilehti) sekä latausmuodot `"pdf"`, `"csv"`, `"pptx"` ja `"json"`. Kangasalan sivulla (`tyokalu.html`) piilossa ovat tiekarttalohko, Vertailu ja simulointi sekä PDF- ja CSV-lataus.
 - Tilojen ja tyyppien ohjetekstit (?-ponnahdusikkunat) ovat asetuksissa `statusInfo` ja `typeInfo`. Vaihepalkki pysyy näkyvissä vierittäessä sivun yläpalkin alla; etäisyyden voi säätää CSS-muuttujalla `--aia-sticky-top` (oletus 64px).
-- Arviointi etenee neljässä vaiheessa (stepper). Työtunnin arvoa voi muuttaa vaiheessa 3; muutos koskee kaikkia arviointeja.
-- Pakolliset tiedot: nimi, palvelukeskus/osasto, yksikkö (jos palvelukeskuksella on yksiköitä), ongelma ja tavoite, miten tekoäly auttaa sekä tietosuojataso. Palvelukeskukselle ja yksikölle voi valita *Muu* ja kirjoittaa oman nimen.
+- Arviointi etenee viidessä vaiheessa (stepper). 1. vaihe on Ohjeet: sen teksti luetaan tiedostosta `content/tyokalu.md` (asetus `guideUrl`), ja sivun yläosassa näkyy tiedoston otsikko.
+- Yhteenvedossa vertailuun voi valita enintään 30 käyttötapausta (oletuksena 10 parasta). Mukana on myös organisaation keskiarvo.
+- Työtunnin arvoa voi muuttaa vaiheessa 4 (Hyöty–kustannus); muutos koskee kaikkia arviointeja.
+- Pakolliset tiedot: nimi, palvelukeskus/osasto, yksikkö (jos palvelukeskuksella on yksiköitä), omistaja, ongelma ja tavoite, miten tekoäly auttaa sekä tietosuojataso. Palvelukeskukselle ja yksikölle voi valita *Muu* ja kirjoittaa oman nimen.
 
 ## Esikatselu omalla koneella
 

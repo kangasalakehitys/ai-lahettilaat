@@ -376,8 +376,9 @@
         el.innerHTML = "<h1>AI-käyttötapausten arviointityökalu</h1>";
         return;
       }
-      el.innerHTML = window.marked ? marked.parse(md) : "<pre>" + esc(md) + "</pre>";
-      el.querySelectorAll("a[href^='http']").forEach((a) => { a.target = "_blank"; a.rel = "noopener"; });
+      // Sivulla näytetään vain otsikko; ohjeteksti näkyy työkalun 1. vaiheessa (Ohjeet).
+      const m = md.match(/^#\s+(.+)$/m);
+      el.innerHTML = "<h1>" + esc(m ? m[1].trim() : "AI-käyttötapausten arviointityökalu") + "</h1>";
     } catch (err) { fail(el, "Työkalun kuvaus", err); }
   }
 

@@ -18,10 +18,21 @@
   const PARAM_TYPE = "ai-arviointi-parametrit";
   const DATA_TYPE = "ai-arviointi-arvioinnit";
   const MAX_CRITERIA = 15;
-  const MAX_SEL = 4;
+  const MAX_SEL = 30;      // vertailuun valittavien enimmäismäärä
+  const DEFAULT_SEL = 10;  // oletuksena valitaan 10 parasta
   const OTHER = "__muu__";
   const CENTER_LBL = "Palvelukeskus/Osasto";
-  const SEL_COLORS = ["#de232f", "#28336c", "#00adc5", "#fcb316"];
+  // Vertailuvärit: kuusi brändiväriä, jokainen kierros läpinäkyvämpänä (30 sävyä).
+  const SEL_BASE = ["#de232f", "#28336c", "#00adc5", "#fcb316", "#009651", "#e64925"];
+  const SEL_ALPHA = [1, 0.7, 0.45, 0.25, 0.15];
+  const selBase = (k) => SEL_BASE[k % SEL_BASE.length];
+  const selAlpha = (k) => SEL_ALPHA[Math.min(Math.floor(k / SEL_BASE.length), SEL_ALPHA.length - 1)];
+  const selColor = (k) => {
+    const h = selBase(k), a = selAlpha(k);
+    if (a >= 1) return h;
+    return "rgba(" + parseInt(h.slice(1, 3), 16) + "," + parseInt(h.slice(3, 5), 16) + "," + parseInt(h.slice(5, 7), 16) + "," + a + ")";
+  };
+  const selText = (k) => (selBase(k) === "#fcb316" || selAlpha(k) <= 0.45 ? "#1d1d1f" : "#fff");
 
   const DEFAULT_CENTERS = {
     "Strateginen johto": ["Hallintopalvelut", "Talous- ja tietohallintopalvelut", "Konserni- ja tukipalvelut", "Kehittämispalvelut", "Henkilöstöpalvelut"],
@@ -93,17 +104,17 @@
     type: PARAM_TYPE, version: VERSION, name: "Oletusparametrit",
     criteria: [
       { id: "strateginen", group: "hyoty", name: "Strateginen merkitys", lo: "vähäinen", hi: "keskeinen",
-        help: "Miten idea edistää kaupungin tai palvelukeskuksen tavoitteita? Kuinka tärkeään kehittämistarpeeseen se vastaa?" },
+        help: "Miten idea edistää organisaation tai yksikön tavoitteita? Kuinka tärkeään kehittämistarpeeseen se vastaa?" },
       { id: "ajansaasto", group: "hyoty", name: "Ajansäästö ja sujuvampi prosessi", lo: "vähän", hi: "paljon",
         help: "Kuinka paljon työaikaa säästyy, manuaalinen työ vähenee tai käsittelyaika lyhenee?" },
       { id: "laatu", group: "hyoty", name: "Palvelun laatu ja kuntalaiskokemus", lo: "ei muutosta", hi: "selvä kehitys",
-        help: "Paraneeko palvelun nopeus, tarkkuus tai tasalaatuisuus? Vähenevätkö virheet?" },
+        help: "Kehittyykö palvelun nopeus, tarkkuus tai tasalaatuisuus? Vähenevätkö virheet?" },
       { id: "tyontekija", group: "hyoty", name: "Työntekijäkokemus", lo: "ei muutosta", hi: "selvä kehitys",
         help: "Poistaako ratkaisu rutiineja ja vapauttaa aikaa vaativampaan tai merkityksellisempään työhön?" },
       { id: "laajuus", group: "hyoty", name: "Käyttötarpeen laajuus", lo: "harva / harvoin", hi: "moni / päivittäin",
-        help: "Kuinka monen työntekijän tai kuntalaisen arkeen idea vaikuttaa ja kuinka usein tehtävä toistuu?" },
+        help: "Kuinka monen työntekijän tai palvelun käyttäjän arkeen idea vaikuttaa ja kuinka usein tehtävä toistuu?" },
       { id: "skaalattavuus", group: "hyoty", name: "Skaalattavuus", lo: "yksi käyttö", hi: "laajasti",
-        help: "Voiko ratkaisua tai toimintatapaa hyödyntää muissa yksiköissä, palvelukeskuksissa tai tehtävissä?" },
+        help: "Voiko ratkaisua tai toimintatapaa hyödyntää muissa organisaation yksiköissä tai tehtävissä?" },
       { id: "kiireellisyys", group: "hyoty", name: "Kiireellisyys", lo: "voi odottaa", hi: "kiireellinen",
         help: "Kuinka tärkeää ongelmaan on tarttua nyt? Mitä seuraa, jos kehittäminen siirtyy?" },
       { id: "uudistuminen", group: "hyoty", name: "Uudistumispotentiaali", lo: "nopeuttaa nykyistä", hi: "uusi toimintatapa",
@@ -129,6 +140,14 @@
     riskWeight: 20,
     privacyPenalty: { vihrea: 0, keltainen: 10, punainen: 25 },
     hourValue: 45
+  };
+
+  // Aiempien versioiden ohjetekstit → uudet (selaimeen tallennetut parametrit päivittyvät).
+  const OLD_HELP = {
+    "Miten idea edistää kaupungin tai palvelukeskuksen tavoitteita? Kuinka tärkeään kehittämistarpeeseen se vastaa?": "Miten idea edistää organisaation tai yksikön tavoitteita? Kuinka tärkeään kehittämistarpeeseen se vastaa?",
+    "Paraneeko palvelun nopeus, tarkkuus tai tasalaatuisuus? Vähenevätkö virheet?": "Kehittyykö palvelun nopeus, tarkkuus tai tasalaatuisuus? Vähenevätkö virheet?",
+    "Kuinka monen työntekijän tai kuntalaisen arkeen idea vaikuttaa ja kuinka usein tehtävä toistuu?": "Kuinka monen työntekijän tai palvelun käyttäjän arkeen idea vaikuttaa ja kuinka usein tehtävä toistuu?",
+    "Voiko ratkaisua tai toimintatapaa hyödyntää muissa yksiköissä, palvelukeskuksissa tai tehtävissä?": "Voiko ratkaisua tai toimintatapaa hyödyntää muissa organisaation yksiköissä tai tehtävissä?"
   };
 
   /* ---------- Apufunktiot ---------- */
@@ -172,7 +191,7 @@
         const def = base.criteria.find((x) => x.id === id) || BASE_PARAMS.criteria.find((x) => x.id === id) || {};
         return {
           id, group: c.group,
-          name: str(c.name, def.name || id), help: str(c.help, def.help || ""),
+          name: str(c.name, def.name || id), help: (function (hp) { return OLD_HELP[hp] || hp; })(str(c.help, def.help || "")),
           lo: str(c.lo, def.lo || ""), hi: str(c.hi, def.hi || ""),
           weight: num(c.weight, 0, 3, def.weight == null ? 1 : def.weight)
         };
@@ -308,7 +327,7 @@
     axes.forEach((_, i) => { const p = pt(i, R); h += '<line x1="' + cx + '" y1="' + cy + '" x2="' + p[0] + '" y2="' + p[1] + '" stroke="#e4e4e8"/>'; });
     series.forEach((s) => {
       h += '<polygon points="' + s.vals.map((v, i) => pt(i, R * clamp(v.v, 0, 100) / 100).map((z) => z.toFixed(1)).join(",")).join(" ") +
-        '" fill="' + s.color + '" fill-opacity="' + (multi ? ".1" : ".22") + '" stroke="' + s.color + '" stroke-width="' + (multi ? "2.5" : "2") + '"><title>' + esc(s.name || "") + "</title></polygon>";
+        '" fill="' + s.color + '" fill-opacity="' + (multi ? (series.length > 6 ? ".03" : ".1") : ".22") + '" stroke="' + s.color + '" stroke-width="' + (multi ? "2.5" : "2") + '"><title>' + esc(s.name || "") + "</title></polygon>";
     });
     axes.forEach((v, i) => {
       const a = -Math.PI / 2 + i * 2 * Math.PI / n, cos = Math.cos(a), sin = Math.sin(a);
@@ -377,6 +396,7 @@
       types: DEFAULT_TYPES,
       typeInfo: DEFAULT_TYPE_INFO,
       statusInfo: DEFAULT_STATUS_INFO,
+      guideUrl: "",
       hidden: [],
       params: null,
       pptxUrl: "https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js",
@@ -405,8 +425,8 @@
       scenarios: (Array.isArray(db.get("scenarios", [])) ? db.get("scenarios", []) : []).filter((x) => x && x.params),
       draft: savedDraft && savedDraft.c ? fixCase(savedDraft.c) : null,
       dirty: !!(savedDraft && savedDraft.dirty),
-      step: savedDraft && savedDraft.step ? clamp(+savedDraft.step || 1, 1, 4) : 1,
-      reached: savedDraft && savedDraft.reached ? clamp(+savedDraft.reached || 1, 1, 4) : 1,
+      step: savedDraft && savedDraft.stepsV === 5 && savedDraft.step ? clamp(+savedDraft.step || 1, 1, 5) : 1,
+      reached: savedDraft && savedDraft.stepsV === 5 && savedDraft.reached ? clamp(+savedDraft.reached || 1, 1, 5) : 1,
       tab: db.get("tab", "arvioi"),
       evalStale: true,
       filt: { center: "", status: "" },
@@ -425,7 +445,7 @@
       return c;
     }
     const saveCases = () => db.set("cases", S.cases);
-    const saveDraft = () => db.set("draft", { c: S.draft, dirty: S.dirty, step: S.step, reached: S.reached });
+    const saveDraft = () => db.set("draft", { c: S.draft, dirty: S.dirty, step: S.step, reached: S.reached, stepsV: 5 });
     const saveParams = () => db.set("params", S.params);
     const saveScen = () => db.set("scenarios", S.scenarios);
     const isSaved = () => S.cases.some((c) => c.id === S.draft.id);
@@ -515,9 +535,9 @@
     const opts = (vals, sel, ph) => (ph != null ? '<option value="">' + esc(ph) + "</option>" : "") +
       vals.map((v) => "<option" + (v === sel ? " selected" : "") + ">" + esc(v) + "</option>").join("");
     const btn = (act, label, cls, extra) => '<button type="button" class="aia-btn' + (cls ? " " + cls : "") + '" data-act="' + act + '"' + (extra || "") + ">" + label + "</button>";
-    const exportBtns = (scope, label) => '<div class="aia-export"><span>' + (label || "Lataa:") + "</span>" +
-      [["pdf", "PDF"], ["pptx", "PowerPoint"], ["csv", "CSV"], ["json", "JSON"]].filter((k) => !hide(k[0]))
-        .map((k) => btn(k[0] + "-" + scope, k[1], "ghost")).join("") + "</div>";
+    const exportBtns = (scope, label, names) => '<div class="aia-export">' + (label === "" ? "" : "<span>" + (label || "Lataa:") + "</span>") +
+      [["json", "JSON"], ["pptx", "PowerPoint"], ["pdf", "PDF"], ["csv", "CSV"]].filter((k) => !hide(k[0]))
+        .map((k) => btn(k[0] + "-" + scope, (names && names[k[0]]) || k[1], "ghost")).join("") + "</div>";
     const reqMark = '<span class="aia-req" aria-hidden="true">*</span><span class="aia-sr"> (pakollinen)</span>';
 
     function field(label, control, help, forId, req) {
@@ -587,14 +607,16 @@
       S.evalStale = false;
       initUi();
       const c = S.draft, P = S.params, u = S.ui;
-      const wnav = (k) => '<div class="aia-wnav">' + (k === 1 ? '<p class="aia-wmsg" data-wmsg role="alert"></p>' : "") +
-        (k > 1 ? btn("wprev", "← Edellinen", "ghost") : "") + (k < 4 ? btn("wnext", "Seuraava →", "primary") : "") + "</div>";
+      const wnav = (k) => '<div class="aia-wnav">' + (k === 2 ? '<p class="aia-wmsg" data-wmsg role="alert"></p>' : "") +
+        (k > 1 ? btn("wprev", "← Edellinen", "ghost") : "") + (k < 5 ? btn("wnext", k === 1 ? "Aloita arviointi →" : "Seuraava →", "primary") : "") + "</div>";
       let h = '<nav class="aia-stepper" aria-label="Arvioinnin vaiheet" data-stepper></nav>';
       h += '<div class="aia-openbar" data-openbar>' + openBarHtml() + "</div>";
       h += '<div class="aia-eval" data-cur="' + S.step + '"><div class="aia-form">';
       h += '<p class="aia-editing"><span data-editing></span> <span class="aia-reqnote">' + reqMark.replace(' aria-hidden="true"', "") .replace("(pakollinen)", "") + " = pakollinen tieto</span></p>";
 
-      h += '<section class="aia-card" data-wstep="1"><h3><span class="aia-step">1</span>Perustiedot</h3>';
+      h += '<section class="aia-card" data-wstep="1"><h3><span class="aia-step">1</span>Ohjeet</h3>' +
+        '<div class="aia-guide" data-guide><p class="aia-note">Ladataan ohjeita…</p></div>' + wnav(1) + "</section>";
+      h += '<section class="aia-card" data-wstep="2"><h3><span class="aia-step">2</span>Perustiedot</h3>';
       h += field("Käyttötapauksen nimi", '<input type="text" id="' + ID + '-name" data-f="name" data-req="name" maxlength="140" aria-required="true" value="' + esc(c.name) + '" autocomplete="off">',
         "Nimeä mahdollisimman konkreettisesti.", ID + "-name", true);
       h += '<div class="aia-row2">' +
@@ -605,7 +627,7 @@
           esc(u.centerOther ? c.center : "") + '"' + (u.centerOther ? "" : " hidden") + ">", "", ID + "-center", true) +
         '<div data-unitwrap>' + unitFieldHtml() + "</div></div>";
       h += '<div class="aia-row2">' +
-        field("Omistaja (henkilö tai tiimi)", '<input type="text" id="' + ID + '-owner" data-f="owner" maxlength="120" value="' + esc(c.owner) + '" placeholder="esim. nimi tai Rakennusvalvonnan tiimi">', "", ID + "-owner") +
+        field("Omistaja (henkilö tai tiimi)", '<input type="text" id="' + ID + '-owner" data-f="owner" data-req="owner" aria-required="true" maxlength="120" value="' + esc(c.owner) + '" placeholder="esim. nimi tai Rakennusvalvonnan tiimi">', "", ID + "-owner", true) +
         '<div class="aia-field"><div class="aia-lblrow"><label class="aia-lbl" for="' + ID + '-type">Tyyppi (valinnainen)</label>' +
         '<button type="button" class="aia-info" data-act="info" data-info="types" aria-haspopup="dialog" title="Mitä tyypit tarkoittavat?">?<span class="aia-sr"> Mitä tyypit tarkoittavat?</span></button></div>' +
         '<select id="' + ID + '-type" data-f="type">' + opts(o.types, c.type, "Valitse") + "</select></div></div>";
@@ -625,9 +647,9 @@
         "<span><b>" + esc(p.label) + "</b><small>" + esc(p.desc) + "</small></span></label>").join("") + "</fieldset>";
       h += '<ul class="aia-pguide" aria-label="Tietosuojatasojen selitteet">' + PRIVACY.map((p) =>
         '<li data-pg="' + p.key + '" class="' + (c.privacy === p.key ? "on" : "") + '" style="--pc:' + p.c + '"><b>' + esc(p.label) + ":</b> " + esc(p.guide) + "</li>").join("") + "</ul>";
-      h += wnav(1) + "</section>";
+      h += wnav(2) + "</section>";
 
-      h += '<section class="aia-card" data-wstep="2"><h3><span class="aia-step">2</span>Arviointi</h3>' +
+      h += '<section class="aia-card" data-wstep="3"><h3><span class="aia-step">3</span>Arviointi</h3>' +
         '<p class="aia-note">Siirrä liukusäädintä tai valitse numero 1–5 (5 = toiminnan kannalta paras). Merkitse ★:llä enintään ' + P.maxStars +
         ' kriteeriä, jotka ovat tälle käyttötapaukselle tärkeimpiä. <b data-starcount></b></p>' + starHelp(P);
       Object.keys(GROUPS).forEach((g) => {
@@ -650,28 +672,28 @@
         });
         h += "</fieldset>";
       });
-      h += wnav(2) + "</section>";
+      h += wnav(3) + "</section>";
 
-      h += '<section class="aia-card" data-wstep="3"><h3><span class="aia-step">3</span>Hyöty–kustannus <small class="aia-opt">valinnainen</small></h3>' +
+      h += '<section class="aia-card" data-wstep="4"><h3><span class="aia-step">4</span>Hyöty–kustannus <small class="aia-opt">valinnainen</small></h3>' +
         '<p class="aia-note">Karkea arvio auttaa vertailemaan käyttötapauksia. Jos et tiedä lukuja, voit jättää kentät tyhjiksi.</p>' +
         '<div class="aia-row3">' +
         field("Säästetty työaika, tunti (h) / kk", '<input type="number" inputmode="decimal" min="0" step="1" id="' + ID + '-hours" data-f="hours" value="' + esc(c.hours) + '">', "Koko organisaatiossa yhteensä.", ID + "-hours") +
         field("Kustannusarvio, € / vuosi", '<input type="number" inputmode="decimal" min="0" step="100" id="' + ID + '-cost" data-f="cost" value="' + esc(c.cost) + '">', "Lisenssit, kehitys ja ylläpito.", ID + "-cost") +
         field("Työtunnin arvo, € / h", '<input type="number" inputmode="decimal" min="0" max="1000" step="1" id="' + ID + '-hv" data-hv value="' + P.hourValue + '">',
           "Koskee kaikkia arviointeja. Oletus " + fiNum(DEF.hourValue) + " €/h.", ID + "-hv") +
-        "</div>" + wnav(3) + "</section>";
+        "</div>" + wnav(4) + "</section>";
       const dls = [["json", "Lataa JSON koneelle"], ["pptx", "Lataa PowerPoint"], ["pdf", "Lataa PDF"], ["csv", "Lataa CSV"]].filter((k) => !hide(k[0]));
-      h += '<section class="aia-card" data-wstep="4"><h3><span class="aia-step">4</span>Tulos ja tallennus</h3>' +
+      h += '<section class="aia-card" data-wstep="5"><h3><span class="aia-step">5</span>Tulos ja tallennus</h3>' +
         '<div class="aia-savebox"><h4>Tallenna ja lataa</h4>' +
         '<p class="aia-note"><b>Tallenna arviointi</b> tallentaa arvioinnin tämän selaimen muistiin tällä koneella. Se ei näy muille eikä siirry toiselle koneelle tai selaimelle, ja se voi kadota, jos selaimen tiedot tyhjennetään.</p>' +
         '<p class="aia-note"><b>Lataa JSON-tiedosto</b> varmuuskopioksi tai lähettääksesi arvioinnin eteenpäin. Sen voi tuoda takaisin <i>Tuo arviointi (JSON)</i> -painikkeella.</p>' +
         '<div class="aia-actions">' + btn("save", "Tallenna arviointi", "primary", " data-savebtn") +
         dls.map((k) => btn(k[0] + "-one", k[1], "")).join("") +
-        btn("save-new", "Tallenna uutena", "ghost", " data-savenew hidden") + btn("new", "Tee uusi arviointi", "ghost") +
+        btn("save-new", "Tallenna kopio pohjaksi", "ghost", " data-savenew hidden") + btn("new", "Tee uusi arviointi", "ghost") +
         (hide("roadmapBlock") ? "" : btn("copy-block", "Kopioi tiekarttalohkona", "ghost", ' title="Valmis lohko content/tiekartta.md-tiedostoon"')) + "</div>" +
         '<p class="aia-savestate" data-savestate role="status" aria-live="polite"></p>' +
-        '<p class="aia-note" data-savenewinfo hidden><b>Tallenna uutena</b> tekee arvioinnista kopion uudella nimellä. Alkuperäinen arviointi säilyy ennallaan – käytä tätä, kun haluat arvioida muunnelman samasta ideasta.</p>' +
-        "<div data-block></div></div>" + '<h4 class="aia-sub">Tarkista tiedot</h4><div data-summary></div>' + wnav(4) + "</section>";
+        '<p class="aia-note" data-savenewinfo hidden><b>Tallenna kopio pohjaksi</b> tekee arvioinnista kopion uudella nimellä. Alkuperäinen säilyy ennallaan – käytä tätä, kun haluat arvioida muunnelman samasta ideasta.</p>' +
+        "<div data-block></div></div>" + '<h4 class="aia-sub">Tarkista tiedot</h4><div data-summary></div>' + wnav(5) + "</section>";
       h += "</div>";
 
       h += '<aside class="aia-result" aria-label="Tulos"><div data-result></div>' +
@@ -680,9 +702,29 @@
       panel("arvioi").innerHTML = h;
       updateResult();
       applyStep(false);
+      loadGuide();
     }
 
-    const STEPS = ["Perustiedot", "Arviointi", "Hyöty–kustannus", "Tulos ja tallennus"];
+    const STEPS = ["Ohjeet", "Perustiedot", "Arviointi", "Hyöty–kustannus", "Tulos ja tallennus"];
+    let guideHtml = null;
+
+    function loadGuide() {
+      const el = panel("arvioi").querySelector("[data-guide]");
+      if (!el) return;
+      const put = (html) => {
+        el.innerHTML = html;
+        el.querySelectorAll("a[href^='http']").forEach((a) => { a.target = "_blank"; a.rel = "noopener"; });
+      };
+      if (guideHtml != null) { put(guideHtml); return; }
+      if (!o.guideUrl) { put('<p>Täytä arviointi vaihe kerrallaan. Tähdellä (*) merkityt tiedot ovat pakollisia.</p>'); return; }
+      fetch(o.guideUrl, { cache: "no-cache" }).then((r) => { if (!r.ok) throw new Error(r.status); return r.text(); }).then((md) => {
+        md = md.replace(/<!--[\s\S]*?-->/g, "").replace(/^\s*#\s+.*$/m, "").trim();
+        guideHtml = global.marked && global.marked.parse ? global.marked.parse(md)
+          : md.split(/\n{2,}/).map((p) => "<p>" + esc(p) + "</p>").join("");
+        const cur = panel("arvioi").querySelector("[data-guide]"); if (cur) { el.innerHTML = ""; }
+        put(guideHtml);
+      }).catch(() => put('<p class="aia-note">Ohjeita ei voitu ladata. Voit aloittaa arvioinnin suoraan.</p>'));
+    }
 
     function applyStep(scroll) {
       const pnl = panel("arvioi"), nav = pnl.querySelector("[data-stepper]");
@@ -695,15 +737,15 @@
           (cur ? ' aria-current="step"' : "") + (open ? "" : " disabled") + ' aria-label="Vaihe ' + k + ": " + t + (done ? " (valmis)" : "") + '">' +
           '<span class="n">' + (done ? "✓" : k) + '</span><span class="t">' + t + "</span></button></li>";
       }).join("") + "</ol>";
-      if (S.step === 4) renderStepSummary();
+      if (S.step === 5) renderStepSummary();
       const ev = pnl.querySelector(".aia-eval");
       if (scroll && ev && ev.getBoundingClientRect().top < 0) ev.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     function goStep(k) {
-      k = clamp(k, 1, 4);
+      k = clamp(k, 1, 5);
       if (k === S.step) return;
-      if (k > 1 && S.step === 1 && !validate(true)) { msg("Täytä ensin pakolliset perustiedot.", "error"); return; }
+      if (k > 2 && S.step === 2 && !validate(true)) { msg("Täytä ensin pakolliset perustiedot.", "error"); return; }
       S.step = k; S.reached = Math.max(S.reached, k);
       saveDraft(); applyStep(true);
     }
@@ -774,6 +816,7 @@
       if (!c.name.trim()) m.push(["name", "Käyttötapauksen nimi"]);
       if (!c.center.trim()) m.push([u.centerOther ? "centerText" : "center", CENTER_LBL]);
       else if (unitRequired(c) && !c.unit.trim()) m.push([u.centerOther || u.unitOther ? "unitText" : "unit", "Yksikkö"]);
+      if (!c.owner.trim()) m.push(["owner", "Omistaja"]);
       if (!c.problem.trim()) m.push(["problem", "Ongelma ja tavoite"]);
       if (!c.aiHelp.trim()) m.push(["aiHelp", "Miten tekoäly auttaa"]);
       if (!c.privacy) m.push(["privacy", "Tietosuoja ja riskitaso"]);
@@ -829,7 +872,7 @@
       if (!c) return false;
       if (S.dirty && S.draft.id !== id && !global.confirm("Avoimessa arvioinnissa on tallentamattomia muutoksia. Hylätäänkö ne?")) { refreshOpenBar(); return false; }
       S.draft = clone(c); S.dirty = false; S.ui.lastSaved = null; S.ui.saveWarn = "";
-      S.step = 1; S.reached = 4;
+      S.step = 2; S.reached = 5;
       saveDraft(); S.evalStale = true;
       showTab(tabAfter || "arvioi");
       return true;
@@ -867,7 +910,8 @@
         panel("omat").innerHTML = h; return;
       }
       const items = ranked(P, filtered());
-      h += exportBtns("list");
+      h += exportBtns("list", "", { json: "Lataa omat arvioinnit koneelle JSON-muodossa", pptx: "Lataa omat arvioinnit koneelle PPTX-muodossa",
+        pdf: "Lataa omat arvioinnit PDF-muodossa", csv: "Lataa omat arvioinnit CSV-muodossa" });
       if (!items.length) { h += '<div class="aia-empty">Ei arviointeja valituilla suodattimilla.</div>'; panel("omat").innerHTML = h; return; }
       h += '<div class="aia-grid2"><div class="aia-card"><h3>Salkkunäkymä</h3>' +
         quadrantSvg(items.map((it, i) => ({ x: it.e.effort, y: it.e.impact, n: i + 1, c: dotColor(it.c, it.e), tc: dotColor(it.c, it.e) === "#fcb316" ? "#1d1d1f" : "#fff", title: (i + 1) + ". " + it.c.name })), P, "Salkkunäkymä: käyttötapaukset nelikentässä") +
@@ -888,7 +932,7 @@
     /* ---------- Yhteenveto: koko organisaation tarkastelu ---------- */
     function selection() {
       const ids = S.cases.map((c) => c.id);
-      if (!S.sel) S.sel = ranked(S.params, S.cases).slice(0, MAX_SEL).map((it) => it.c.id);
+      if (!S.sel) S.sel = ranked(S.params, S.cases).slice(0, DEFAULT_SEL).map((it) => it.c.id);
       S.sel = S.sel.filter((id) => ids.indexOf(id) >= 0).slice(0, MAX_SEL);
       return S.sel;
     }
@@ -896,13 +940,13 @@
     function filteredY() {
       return S.cases.filter((c) => (!S.yfilt || c.center === S.yfilt) && (!showStatus || !S.ystat || c.status === S.ystat));
     }
-    const pbar = (v, col) => '<span class="aia-pbar"><i><b style="width:' + r0(v) + "%" + (col ? ";background:" + col : "") + '"></b></i><em>' + r0(v) + "</em></span>";
-    const selNum = (k) => '<span class="aia-num sm" style="background:' + SEL_COLORS[k] + (SEL_COLORS[k] === "#fcb316" ? ";color:#1d1d1f" : "") + '">' + (k + 1) + "</span>";
+    const pbar = (v, col, cls) => '<span class="aia-pbar' + (cls ? " " + cls : "") + '"><i><b style="width:' + r0(v) + "%" + (col ? ";background:" + col : "") + '"></b></i><em>' + r0(v) + "</em></span>";
+    const selNum = (k) => '<span class="aia-num sm" style="background:' + selColor(k) + ";color:" + selText(k) + '">' + (k + 1) + "</span>";
 
     function renderSummary() {
       const P = S.params;
       let h = '<p class="aia-lead">Tarkastele organisaation kaikkia käyttötapauksia yhdessä. Tuo yksiköiden JSON-tiedostot (voit valita useita kerralla), ' +
-        "suodata ja valitse enintään " + MAX_SEL + " käyttötapausta tarkempaan vertailuun.</p>";
+        "suodata ja valitse vertailuun enintään " + MAX_SEL + " käyttötapausta. Oletuksena valitaan " + DEFAULT_SEL + " parasta.</p>";
       h += '<div class="aia-toolbar">' +
         "<label>" + CENTER_LBL + "<select data-yfilt>" + opts(centerNames(), S.yfilt, "Kaikki") + "</select></label>" +
         (showStatus ? "<label>Tila<select data-ystat>" + opts(o.statuses.map((x) => x.label), S.ystat, "Kaikki") + "</select></label>" : "") +
@@ -914,28 +958,33 @@
       }
       const sel = selection(), full = sel.length >= MAX_SEL;
       const pool = ranked(P, filteredY());
-      if (!pool.length) { panel("yhteenveto").innerHTML = h + '<div class="aia-empty">Ei käyttötapauksia valituilla suodattimilla.</div>'; return; }
-      h += exportBtns("yall", "Lataa kaikki suodatetut (" + pool.length + "):");
+      if (!pool.length) { panel("yhteenveto").innerHTML = h + '<div class="aia-empty">Ei käyttötapauksia valituilla suodattimilla.</div>' + formulaHtml(); return; }
+      h += exportBtns("yall", "", { json: "Lataa organisaation arvioinnit koneelle JSON-muodossa", pptx: "Lataa organisaation arvioinnit koneelle PPTX-muodossa",
+        pdf: "Lataa organisaation arvioinnit PDF-muodossa", csv: "Lataa organisaation arvioinnit CSV-muodossa" });
       const cs = selCases(), ev = cs.map((c) => evaluate(c, P));
+      const avg = pool.reduce((sum, it) => sum + it.e.prio, 0) / pool.length;
 
-      h += '<div class="aia-grid2"><div class="aia-card"><h3>Nelikenttä – ' + pool.length + " käyttötapaus" + (pool.length === 1 ? "" : "ta") + "</h3>" +
-        quadrantSvg(pool.map((it, i) => {
+      h += '<div class="aia-card"><h3>Nelikenttä – ' + pool.length + " käyttötapaus" + (pool.length === 1 ? "" : "ta") + "</h3>" +
+        '<div class="aia-quadwrap">' + quadrantSvg(pool.map((it, i) => {
           const k = sel.indexOf(it.c.id);
-          return { x: it.e.effort, y: it.e.impact, n: i + 1, c: k >= 0 ? SEL_COLORS[k] : "#8a8c94", tc: k >= 0 && SEL_COLORS[k] === "#fcb316" ? "#1d1d1f" : "#fff",
-            r: k >= 0 ? 13 : 10, title: (i + 1) + ". " + it.c.name + " – " + r0(it.e.prio) + " p." };
-        }), P, "Nelikenttä: kaikki suodatetut käyttötapaukset") +
+          return { x: it.e.effort, y: it.e.impact, n: i + 1, c: k >= 0 ? selColor(k) : "#c4c5cc", tc: k >= 0 ? selText(k) : "#1d1d1f",
+            r: k >= 0 ? 12 : 10, title: (i + 1) + ". " + it.c.name + " – " + r0(it.e.prio) + " p." };
+        }), P, "Nelikenttä: kaikki suodatetut käyttötapaukset") + "</div>" +
         '<p class="aia-note">Numero = sijoitus prioriteettijärjestyksessä. Värilliset = valittu vertailuun, harmaat = muut. Vie hiiri pallon päälle nähdäksesi nimen.</p></div>';
-      h += '<div class="aia-card"><h3>Valitut vertailuun (' + cs.length + " / " + MAX_SEL + ")</h3>";
-      if (cs.length) {
-        h += '<h4 class="aia-sub">Kokonaispisteet</h4><div class="aia-hbars">' + cs.map((c, i) =>
-          '<div class="aia-hbar">' + selNum(i) + '<span class="aia-hname">' + esc(c.name || "(nimetön)") + "</span>" + pbar(ev[i].prio, SEL_COLORS[i]) + "</div>").join("") + "</div>" +
-          '<h4 class="aia-sub">Tutkakaavio</h4>' +
-          radarSvg(cs.map((c, i) => ({ color: SEL_COLORS[i], name: (i + 1) + ". " + c.name, vals: radarVals(c, ev[i]) }))) +
-          '<ul class="aia-legend">' + cs.map((c, i) => '<li><i style="background:' + SEL_COLORS[i] + '"></i>' + (i + 1) + ". " + esc(c.name) + "</li>").join("") + "</ul>";
-      } else h += '<p class="aia-note">Valitse käyttötapauksia alla olevasta taulukosta.</p>';
-      h += "</div></div>";
 
-      // Prioriteettijärjestys
+      h += '<div class="aia-card"><h3>Kokonaispisteet – valitut (' + cs.length + " / " + MAX_SEL + ")</h3>" +
+        '<div class="aia-hbars"><div class="aia-hbar avg"><span class="aia-num sm avg">Ø</span><span class="aia-hname">Organisaation keskiarvo (' + pool.length + " käyttötapaus" + (pool.length === 1 ? "" : "ta") + ")</span>" +
+        pbar(avg, "#b9bbc3", "avg") + "</div>" +
+        cs.map((c, i) => '<div class="aia-hbar">' + selNum(i) + '<span class="aia-hname">' + esc(c.name || "(nimetön)") + "</span>" + pbar(ev[i].prio, selColor(i)) + "</div>").join("") +
+        "</div>" + (cs.length ? "" : '<p class="aia-note">Valitse käyttötapauksia alla olevasta taulukosta.</p>') + "</div>";
+
+      if (cs.length) {
+        h += '<div class="aia-card"><h3>Tutkakaavio – valitut</h3><div class="aia-radarwrap"><div>' +
+          radarSvg(cs.map((c, i) => ({ color: selColor(i), name: (i + 1) + ". " + c.name, vals: radarVals(c, ev[i]) }))) + "</div>" +
+          '<ol class="aia-legend v">' + cs.map((c, i) => '<li><i style="background:' + selColor(i) + '"></i><span>' + (i + 1) + ". " + esc(c.name || "(nimetön)") + "</span></li>").join("") + "</ol></div></div>";
+      }
+
+      // Prioriteettijärjestys (neutraali taulukko)
       const rows = pool.map((it, i) => ({ c: it.c, e: it.e, rank: i + 1 }));
       const key = S.ysortKey, dir = S.ysortDir;
       const val = {
@@ -945,42 +994,45 @@
       rows.sort((a, b) => { const x = val(a), y = val(b); return (typeof x === "string" ? x.localeCompare(y, "fi") : x - y) * dir || a.rank - b.rank; });
       const cols = [["rank", "#"], ["name", "Käyttötapaus"], ["prio", "Kokonaispisteet"], ["impact", "Vaikutus"], ["effort", "Työmäärä"], ["risk", "Riski"], ["ratio", "Hyöty / kust."]]
         .concat(showStatus ? [["status", "Tila"]] : []);
-      h += '<div class="aia-card"><div class="aia-rank-head"><h3>Prioriteettijärjestys</h3><p class="aia-note">Valitse ruudusta enintään ' + MAX_SEL +
-        " vertailuun" + (full ? " – poista ensin jokin valinta, jos haluat vaihtaa" : "") + ".</p></div>" +
+      h += '<div class="aia-card"><div class="aia-rank-head"><h3>Prioriteettijärjestys</h3><p class="aia-note">Valitse ruudusta vertailuun enintään ' + MAX_SEL +
+        " (" + sel.length + " valittu)" + (full ? " – poista ensin jokin valinta, jos haluat vaihtaa" : "") + ".</p></div>" +
         '<div class="aia-tablewrap"><table class="aia-table aia-ytable"><thead><tr><th scope="col"><span class="aia-sr">Vertailuun</span>☐</th>' + cols.map((c) =>
           '<th scope="col" aria-sort="' + (key === c[0] ? (dir > 0 ? "ascending" : "descending") : "none") + '"><button type="button" data-ysort="' + c[0] + '">' + c[1] +
           (key === c[0] ? (dir > 0 ? " ↑" : " ↓") : "") + "</button></th>").join("") + "</tr></thead><tbody>";
       rows.forEach((r) => {
-        const k = sel.indexOf(r.c.id), on = k >= 0;
-        h += '<tr class="' + (r.rank <= 5 ? "top" : "") + (on ? " sel" : "") + '"' + (on ? ' style="--yc:' + SEL_COLORS[k] + '"' : "") + ">" +
+        const on = sel.indexOf(r.c.id) >= 0;
+        h += "<tr>" +
           '<td><input type="checkbox" data-ysel="' + esc(r.c.id) + '" aria-label="Valitse vertailuun: ' + esc(r.c.name) + '"' + (on ? " checked" : "") + (!on && full ? " disabled" : "") + "></td>" +
-          "<td><b>" + r.rank + "</b>" + (on ? " " + selNum(k) : "") + "</td>" +
+          "<td>" + r.rank + "</td>" +
           "<td>" + esc(r.c.name || "(nimetön)") + '<small class="aia-where">' + esc([r.c.center, r.c.unit].filter(Boolean).join(" · ")) + "</small></td>" +
-          "<td>" + pbar(r.e.prio, on ? SEL_COLORS[k] : null) + "</td><td>" + r0(r.e.impact) + "</td><td>" + r0(r.e.effort) + "</td><td>" + r0(r.e.risk) + "</td>" +
+          "<td>" + pbar(r.e.prio) + "</td><td>" + r0(r.e.impact) + "</td><td>" + r0(r.e.effort) + "</td><td>" + r0(r.e.risk) + "</td>" +
           "<td>" + (r.e.ratio == null ? "–" : fiNum(r.e.ratio, 1) + "×") + "</td>" +
           (showStatus ? '<td><span class="aia-dot" style="background:' + statusColor(r.c.status) + '"></span>' + esc(r.c.status) + "</td>" : "") + "</tr>";
       });
-      h += '</tbody></table></div><p class="aia-note">Korostettu = 5 parasta. Järjestä klikkaamalla otsikkoa.</p></div>';
+      h += '</tbody></table></div><p class="aia-note">Järjestä klikkaamalla otsikkoa.</p></div>';
 
       if (cs.length) {
-        h += '<div class="aia-rank-head"><h3 class="aia-sub">Valitut rinnakkain</h3>' + exportBtns("sel", "Lataa valitut:") + "</div>";
+        h += '<div class="aia-rank-head"><h3 class="aia-sub">Valitut rinnakkain</h3>' +
+          exportBtns("sel", "", { json: "Lataa valitut koneelle JSON-muodossa", pptx: "Lataa valitut koneelle PPTX-muodossa", pdf: "Lataa valitut PDF-muodossa", csv: "Lataa valitut CSV-muodossa" }) + "</div>";
         h += '<div class="aia-ycards">' + cs.map((c, i) => {
           const e = ev[i], pr = privacyOf(c.privacy);
           const stars = S.params.criteria.filter((cr) => c.stars.indexOf(cr.id) >= 0).map((cr) => cr.name);
-          return '<article class="aia-ycard" style="--yc:' + SEL_COLORS[i] + '"><div class="aia-ycard-head">' + selNum(i) + "<h4>" + esc(c.name || "(nimetön)") + "</h4></div>" +
+          return '<article class="aia-ycard" style="--yc:' + selColor(i) + '"><div class="aia-ycard-head">' + selNum(i) + "<h4>" + esc(c.name || "(nimetön)") + "</h4></div>" +
             '<p class="aia-where">' + esc([c.center, c.unit, c.type].filter(Boolean).join(" · ")) + "</p>" +
-            '<div class="aia-prio sm"><b>' + r0(e.prio) + "</b><span>Kokonaispisteet / 100</span></div>" +
+            '<div class="aia-prio sm"><b>' + r0(e.prio) + "</b><span>Kokonaispisteet / 100<br>keskiarvo " + r0(avg) + "</span></div>" +
             '<span class="aia-quadchip" style="--qc:' + e.quad.c + '">' + esc(e.quad.label) + "</span>" +
             barsHtml(e) +
             (showStatus ? '<p class="aia-yline"><b>Tila:</b> ' + esc(c.status || "–") + "</p>" : "") +
             '<p class="aia-yline"><b>Tietosuoja:</b> ' + (pr ? '<i class="aia-dot" style="background:' + pr.c + '"></i>' + esc(pr.label) : "–") + "</p>" +
             (showJory && c.jory ? '<p class="aia-yline"><b>Jory-huomio:</b> vaatii johtoryhmän päätöstä</p>' : "") +
+            '<p class="aia-yline"><b>Omistaja:</b> ' + esc(c.owner || "–") + "</p>" +
             '<p class="aia-yline"><b>★ Avainkriteerit:</b> ' + (stars.length ? esc(stars.join(", ")) : "–") + "</p>" +
             (c.problem ? '<p class="aia-yline"><b>Ongelma ja tavoite:</b> ' + esc(c.problem) + "</p>" : "") +
             '<p class="aia-yline"><b>Suositus:</b> ' + esc(e.recs[0]) + "</p>" +
             btn("open", "Avaa muokattavaksi", "small", ' data-id="' + esc(c.id) + '"') + "</article>";
         }).join("") + "</div>";
       }
+      h += '<div class="aia-card aia-formula-card">' + formulaHtml() + "</div>";
       panel("yhteenveto").innerHTML = h;
     }
 
@@ -1119,10 +1171,9 @@
         btn("params-reset", "Palauta oletukset", "ghost") + "</div></div>";
       h += '<div class="aia-card"><h3>Kriteerit ja painot</h3><p class="aia-note">Paino 0 = kriteeri ei vaikuta. Ohjetekstejä ja uusia kriteerejä (enintään ' + MAX_CRITERIA +
         ") voi muokata ladatussa JSON-tiedostossa ja tuoda sen takaisin.</p>" +
-        '<div class="aia-tablewrap"><table class="aia-table aia-ptable"><thead><tr><th scope="col">Kriteeri</th><th scope="col">Ryhmä</th><th scope="col">Paino</th></tr></thead><tbody>';
+        '<div class="aia-tablewrap"><table class="aia-table aia-ptable"><thead><tr><th scope="col">Kriteeri</th><th scope="col">Paino</th></tr></thead><tbody>';
       P.criteria.forEach((cr, i) => {
         h += '<tr><td><input type="text" aria-label="Kriteerin nimi" data-cname="' + i + '" maxlength="80" value="' + esc(cr.name) + '"></td>' +
-          '<td><select aria-label="Ryhmä" data-cgroup="' + i + '">' + Object.keys(GROUPS).map((g) => '<option value="' + g + '"' + (g === cr.group ? " selected" : "") + ">" + esc(GROUPS[g].label) + "</option>").join("") + "</select></td>" +
           '<td><select aria-label="Paino" data-cweight="' + i + '">' + [0, 0.5, 1, 1.5, 2, 2.5, 3].map((w) => '<option value="' + w + '"' + (w === cr.weight ? " selected" : "") + ">" + fiNum(w, 1) + "</option>").join("") + "</select></td></tr>";
       });
       h += "</tbody></table></div></div>";
@@ -1130,13 +1181,19 @@
       CALC_FIELDS.forEach((f, i) => {
         h += field(f.label, '<input type="number" id="' + ID + "-pf" + i + '" data-p="' + f.k + '" min="' + f.min + '" max="' + f.max + '" step="' + f.step + '" value="' + simGet(P, f.k) + '">', f.help, ID + "-pf" + i);
       });
-      h += "</div>" +
-        '<details class="aia-formula"><summary>Näin pisteet lasketaan</summary><ul>' +
-        "<li>Jokainen vastaus 1–5 muunnetaan asteikolle 0–100. Ryhmän pisteet ovat painotettu keskiarvo (★ = paino × kerroin).</li>" +
-        "<li><b>Vaikutus</b> = Hyödyt toiminnassa. <b>Toteutettavuus</b> = Toteutettavuus ja kustannukset. <b>Työmäärä</b> = 100 − toteutettavuus. <b>Riskitaso</b> = 100 − Riskit ja vastuullisuus.</li>" +
-        "<li><b>Prioriteetti</b> = osuus × vaikutus + (1 − osuus) × toteutettavuus − riskien painoarvo × riskitaso / 100 − tietosuojatason vähennys (0–100).</li>" +
-        "<li><b>Hyöty / kustannus</b> = säästetyt tunnit × 12 × työtunnin arvo / vuosikustannus.</li></ul></details></div>";
+      h += "</div>" + formulaHtml() + "</div>";
       panel("parametrit").innerHTML = h;
+    }
+
+    function formulaHtml() {
+      const P = S.params;
+      return '<details class="aia-formula"><summary>Näin pisteet lasketaan</summary><ul>' +
+        "<li>Jokainen vastaus 1–5 muunnetaan asteikolle 0–100. Ryhmän pisteet ovat painotettu keskiarvo (★ = paino × kerroin, nyt ×" + fiNum(P.starMultiplier, 1) + ").</li>" +
+        "<li><b>Vaikutus</b> = Hyödyt toiminnassa. <b>Toteutettavuus</b> = Toteutettavuus ja kustannukset. <b>Työmäärä</b> = 100 − toteutettavuus. <b>Riskitaso</b> = 100 − Riskit ja vastuullisuus.</li>" +
+        "<li><b>Kokonaispisteet (prioriteetti)</b> = osuus × vaikutus + (1 − osuus) × toteutettavuus − riskien painoarvo × riskitaso / 100 − tietosuojatason vähennys, rajattuna välille 0–100. " +
+        "Nyt osuus on " + r0(P.balance) + " %, riskien painoarvo " + r0(P.riskWeight) + " ja vähennykset keltainen −" + r0(P.privacyPenalty.keltainen) + " / punainen −" + r0(P.privacyPenalty.punainen) + ".</li>" +
+        "<li><b>Nelikenttä</b>: vaikutus vähintään " + r0(P.impactThreshold) + " = ylärivi, työmäärä alle " + r0(P.effortThreshold) + " = vasen sarake.</li>" +
+        "<li><b>Hyöty / kustannus</b> = säästetyt tunnit × 12 × työtunnin arvo (" + fiNum(P.hourValue) + " €/h) / vuosikustannus.</li></ul></details>";
     }
 
     function setParams(next, note) {
@@ -1207,7 +1264,7 @@
       if (target === "multi") {
         const cur = selection().slice();
         ranked(S.params, S.cases.filter((c) => ids.indexOf(c.id) >= 0)).forEach((it) => {
-          if (cur.length < MAX_SEL && cur.indexOf(it.c.id) < 0) cur.push(it.c.id);
+          if (cur.length < DEFAULT_SEL && cur.indexOf(it.c.id) < 0) cur.push(it.c.id);
         });
         S.sel = cur; db.set("sel", S.sel);
         S.evalStale = true; showTab("yhteenveto");
@@ -1215,7 +1272,7 @@
         if (openCase(ids[0], "arvioi")) msg(note + " Arviointi avattiin.", "ok");
         else showTab(S.tab);
       } else {
-        S.sel = ranked(S.params, S.cases.filter((c) => ids.indexOf(c.id) >= 0)).slice(0, MAX_SEL).map((it) => it.c.id);
+        S.sel = ranked(S.params, S.cases.filter((c) => ids.indexOf(c.id) >= 0)).slice(0, DEFAULT_SEL).map((it) => it.c.id);
         db.set("sel", S.sel);
         S.evalStale = true;
         showTab(target === "one" || S.tab === "arvioi" ? "yhteenveto" : S.tab);
@@ -1267,7 +1324,7 @@
     function exportPdf(list, heading, keepOrder) {
       const P = S.params, multi = list.length > 1;
       const items = keepOrder ? list.map((c) => ({ c, e: evaluate(c, P) })) : ranked(P, list);
-      const colors = (i) => (keepOrder && i < MAX_SEL ? SEL_COLORS[i] : null);
+      const colors = (i) => (keepOrder && i < MAX_SEL ? selColor(i) : null);
       const head = '<header class="aia-ph"><span>' + esc(o.org) + " · " + esc(o.title) + "</span><span>" + fiDate(new Date()) + "</span></header>";
       const lastCol = showStatus ? "Tila" : "Tietosuoja";
       const lastVal = (c) => (showStatus ? c.status : ((privacyOf(c.privacy) || {}).label || "–"));
@@ -1276,8 +1333,8 @@
         const top = items.slice(0, MAX_SEL);
         h += '<section class="aia-pp">' + head + "<h1>" + esc(heading) + "</h1><p>" + items.length + " käyttötapausta · parametrit: " + esc(P.name) + "</p>" +
           '<div class="aia-pgrid"><div>' + quadrantSvg(items.map((it, i) => ({ x: it.e.effort, y: it.e.impact, n: i + 1, c: colors(i) || dotColor(it.c, it.e) })), P) +
-          radarSvg(top.map((it, i) => ({ color: SEL_COLORS[i], name: (i + 1) + ". " + it.c.name, vals: radarVals(it.c, it.e) }))) +
-          '<ul class="aia-legend">' + top.map((it, i) => '<li><i style="background:' + SEL_COLORS[i] + '"></i>' + (i + 1) + ". " + esc(it.c.name) + "</li>").join("") + "</ul></div>" +
+          radarSvg(top.map((it, i) => ({ color: selColor(i), name: (i + 1) + ". " + it.c.name, vals: radarVals(it.c, it.e) }))) +
+          '<ul class="aia-legend">' + top.map((it, i) => '<li><i style="background:' + selColor(i) + '"></i>' + (i + 1) + ". " + esc(it.c.name) + "</li>").join("") + "</ul></div>" +
           '<table class="aia-ptab"><thead><tr><th>#</th><th>Käyttötapaus</th><th>Prio</th><th>Vaik.</th><th>Työm.</th><th>' + lastCol + "</th></tr></thead><tbody>" +
           items.map((it, i) => "<tr><td>" + (i + 1) + "</td><td>" + esc(it.c.name) + "<br><small>" + esc(it.c.center) + "</small></td><td><b>" + r0(it.e.prio) + "</b></td><td>" +
             r0(it.e.impact) + "</td><td>" + r0(it.e.effort) + "</td><td>" + esc(lastVal(it.c)) + "</td></tr>").join("") + "</tbody></table></div></section>";
@@ -1343,7 +1400,7 @@
             if (pt.n !== "") s.addText(String(pt.n), { x: px - d / 2, y: py - d / 2, w: d, h: d, fontFace: F, fontSize: 10, bold: true, color: pt.c === "#fcb316" ? "1D1D1F" : "FFFFFF", align: "center", valign: "middle", margin: 0 });
           });
         };
-        const ptColor = (it, i) => (keepOrder && i < MAX_SEL ? SEL_COLORS[i] : dotColor(it.c, it.e));
+        const ptColor = (it, i) => (keepOrder && i < MAX_SEL ? selBase(i) : dotColor(it.c, it.e));
 
         let s = p.addSlide();
         s.background = { color: "DE232F" };
@@ -1478,12 +1535,12 @@
           S.draft = d;
           const ok = storeCase(S.draft);
           const n = panel("arvioi").querySelector("#" + ID + "-name"); if (n) n.value = d.name;
-          msg((ok ? "Tallennettu uutena: " : "Luotu uutena (ei tallentunut selaimeen): ") + d.name + ". Voit nyt muuttaa nimeä ja tietoja.", ok ? "ok" : "warn");
+          msg((ok ? "Tallennettu kopio pohjaksi: " : "Kopio luotu (ei tallentunut selaimeen): ") + d.name + ". Voit nyt muuttaa nimeä ja tietoja.", ok ? "ok" : "warn");
           break;
         }
         case "new":
           if (S.dirty && !global.confirm("Hylätäänkö tallentamattomat muutokset?")) break;
-          S.draft = newCase(); S.dirty = false; S.ui.lastSaved = null; S.ui.saveWarn = ""; S.step = 1; S.reached = 1; saveDraft(); renderEval();
+          S.draft = newCase(); S.dirty = false; S.ui.lastSaved = null; S.ui.saveWarn = ""; S.step = 2; S.reached = Math.max(S.reached, 2); saveDraft(); renderEval();
           { const n = root.querySelector("#" + ID + "-name"); if (n) n.focus(); }
           break;
         case "copy-block": {

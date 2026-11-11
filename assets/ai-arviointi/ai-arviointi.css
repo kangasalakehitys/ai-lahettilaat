@@ -309,9 +309,15 @@
 .aia-wnav .aia-btn.primary { margin-left: auto; }
 .aia-wmsg { flex: 1 0 100%; margin: 0; color: var(--aia-red-dark); font-weight: 700; font-size: .9rem; }
 .aia-wmsg:empty { display: none; }
-.aia-eval:not([data-cur="4"]) .aia-r4 { display: none; }
-.aia-eval[data-cur="4"] .aia-r13 { display: none; }
-@media (max-width: 900px) { .aia-eval:not([data-cur="4"]) .aia-result { display: none; } }
+.aia-eval[data-cur="5"] .aia-r13 { display: none; }
+@media (max-width: 900px) { .aia-eval:not([data-cur="5"]) .aia-result { display: none; } }
+.aia-eval[data-cur="1"] { grid-template-columns: minmax(0, 1fr); }
+.aia-eval[data-cur="1"] .aia-result, .aia-eval[data-cur="1"] .aia-editing { display: none; }
+.aia-guide { max-width: 760px; }
+.aia-guide h2, .aia-guide h3 { font-size: 1.05rem; margin: 1em 0 .4em; display: block; }
+.aia-guide p { margin: 0 0 .8em; }
+.aia-guide ol, .aia-guide ul { padding-left: 1.3em; margin: 0 0 .9em; }
+.aia-guide li { margin: 4px 0; }
 .aia-row3 { display: grid; gap: 0 16px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 .aia-sumlist { margin: 0; }
 .aia-sumlist > div { display: grid; grid-template-columns: minmax(120px, 34%) 1fr; gap: 12px; padding: 8px 0; border-top: 1px solid var(--aia-line); }
@@ -339,11 +345,29 @@
 .aia-pbar i { flex: 1; height: 12px; background: var(--aia-soft); border-radius: 999px; overflow: hidden; display: block; }
 .aia-pbar i b { display: block; height: 100%; border-radius: 999px; background: var(--aia-navy); }
 .aia-pbar em { font-style: normal; font-weight: 700; min-width: 2ch; text-align: right; }
-.aia-hbars { display: grid; gap: 10px; margin-bottom: 8px; }
-.aia-hbar { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 8px; align-items: center; }
-.aia-hbar .aia-hname { font-weight: 700; font-size: .9rem; overflow-wrap: anywhere; }
-.aia-hbar .aia-pbar { grid-column: 1 / -1; }
-.aia-num.sm { width: 22px; height: 22px; font-size: .75rem; display: inline-grid; vertical-align: middle; }
+.aia-hbars { display: grid; gap: 6px; margin-bottom: 8px; }
+.aia-hbar { display: grid; grid-template-columns: 24px minmax(120px, 32%) minmax(0, 1fr); gap: 4px 10px; align-items: center; }
+@media (max-width: 560px) {
+  .aia-hbars { gap: 10px; }
+  .aia-hbar { grid-template-columns: 24px minmax(0, 1fr); }
+  .aia-hbar .aia-pbar { grid-column: 1 / -1; }
+}
+.aia-hbar .aia-hname { font-weight: 400; font-size: .9rem; overflow-wrap: anywhere; }
+.aia-hbar .aia-pbar em { font-weight: 400; }
+.aia-hbar.avg { padding-bottom: 10px; border-bottom: 1px dashed var(--aia-line); }
+.aia-hbar.avg .aia-hname { color: var(--aia-muted); }
+.aia-num.avg { background: #b9bbc3; color: #1d1d1f; }
+.aia-pbar.avg i { outline: 1px dashed #8a8c94; outline-offset: 1px; }
+.aia-quadwrap { max-width: 520px; margin: 0 auto; }
+.aia-radarwrap { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(220px, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 760px) { .aia-radarwrap { grid-template-columns: minmax(0, 1fr); } }
+.aia-legend.v { display: block; max-height: 380px; overflow-y: auto; margin: 0; padding-right: 4px; }
+.aia-legend.v li { display: flex; gap: 8px; align-items: flex-start; padding: 3px 0; }
+.aia-legend.v li i { flex: 0 0 14px; height: 14px; margin: 3px 0 0; border-radius: 3px; }
+.aia-legend.v li span { overflow-wrap: anywhere; }
+.aia-ytable tbody tr td { background: var(--aia-bg); }
+.aia-ytable tbody tr:nth-child(even) td { background: var(--aia-soft); }
+.aia-formula-card .aia-formula { margin: 0; }.aia-num.sm { width: 22px; height: 22px; font-size: .75rem; display: inline-grid; vertical-align: middle; }
 .aia-ytable td:first-child, .aia-ytable th:first-child { width: 36px; text-align: center; }
 .aia-ytable input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--aia-red); cursor: pointer; }
 .aia-ytable input:disabled { cursor: not-allowed; }
