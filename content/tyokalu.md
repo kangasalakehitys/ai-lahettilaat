@@ -1,6 +1,6 @@
 # AI-käyttötapausten arviointityökalu
 
-Työkalulla yksiköt ja AI-lähettiläät arvioivat tekoälyn käyttötapauksia yhtenäisesti ennen kuin ne viedään AI-tiekarttaan. Arviointi vie noin 15 minuuttia.
+Työkalulla organisaation eri yksiköt voivat arvioida tekoälyn käyttötapauksia yhtenäisesti ennen kuin ne viedään AI-tiekarttaan. Arviointi vie noin 15 minuuttia.
 
 **Näin arvioit – neljä vaihetta**
 

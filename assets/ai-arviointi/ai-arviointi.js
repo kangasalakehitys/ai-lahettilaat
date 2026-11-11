@@ -54,10 +54,22 @@
       ex: ["Lomakkeiden ja hakemusten esikäsittely ja ohjaus", "Palautteiden ja sähköpostien ohjaus oikealle käsittelijälle", "Rutiini-ilmoitukset ja muistutukset"] }
   };
   const TYPE_SOURCE = "https://openai.com/fi-FI/business/learn/identifying-and-scaling-ai-use-cases/";
+  // Tilojen selitteet (Tila-kohdan ?-ponnahdusikkuna).
+  const DEFAULT_STATUS_INFO = {
+    "Ideat": "Käyttötapaus on tunnistettu ja kirjattu ylös, mutta sitä ei ole vielä tutkittu tarkemmin. Tässä vaiheessa kuvataan lyhyesti ongelma, johon haetaan ratkaisua.",
+    "Arvioinnissa": "Idean toteutuskelpoisuutta, liiketoimintahyötyjä ja kustannuksia selvitetään. Tässä vaiheessa tehdään päätös siitä, edistetäänkö tapausta varsinaiseen kehitykseen.",
+    "Työn alla": "Käyttötapaus on hyväksytty toteutettavaksi, ja sen varsinainen rakentaminen tai kehitystyö on käynnissä.",
+    "Testauksessa": "Ratkaisu on teknisesti valmis, ja sen toimivuutta, tietoturvaa sekä käyttäjäkokemusta varmistetaan ennen laajempaa käyttöönottoa.",
+    "Tuotannossa": "Ratkaisu on julkaistu loppukäyttäjille ja se on osa normaalia päivittäistä toimintaa. Tässä vaiheessa seurataan toteutuneita hyötyjä ja ylläpidetään ratkaisua.",
+    "Hylätty / Odottaa": "Käyttötapaus ei ole tällä hetkellä aktiivinen. Se on joko todettu kannattamattomaksi (hylätty) tai sen edistäminen on laitettu tauolle odottamaan esimerkiksi parempaa ajankohtaa, budjettia tai teknologiaa (odottaa)."
+  };
   const PRIVACY = [
-    { key: "vihrea", label: "Vihreä", desc: "julkinen tai sisäinen perustieto", c: "#009651", score: 100 },
-    { key: "keltainen", label: "Keltainen", desc: "vaatii tarkastelun", c: "#fcb316", score: 60, dark: true },
-    { key: "punainen", label: "Punainen", desc: "henkilötietoja tai salassa pidettävää", c: "#de232f", score: 20 }
+    { key: "vihrea", label: "Vihreä", desc: "julkinen tai sisäinen perustieto", c: "#009651", score: 100,
+      guide: "julkista tai organisaation sisäistä perustietoa (esim. verkkosivujen sisällöt, yleiset ohjeet ja päätökset). Voidaan edetä normaalisti." },
+    { key: "keltainen", label: "Keltainen", desc: "vaatii tarkastelun", c: "#fcb316", score: 60, dark: true,
+      guide: "vaatii tarkastelun – esim. sisäisiä asiakirjoja, sopimuksia tai yksittäisiä henkilötietoja (nimi, yhteystiedot). Käy läpi tietosuojan ja tietoturvan asiantuntijan kanssa ennen käyttöönottoa." },
+    { key: "punainen", label: "Punainen", desc: "henkilötietoja tai salassa pidettävää", c: "#de232f", score: 20,
+      guide: "henkilötietoja laajasti, arkaluonteisia tietoja (esim. terveys-, sosiaali- tai oppilastiedot) tai salassa pidettävää tietoa. Vaatii tietosuojan vaikutustenarvioinnin ja hyväksynnän ennen etenemistä." }
   ];
   const GROUPS = {
     hyoty: { label: "Hyödyt toiminnassa", axis: "Vaikutus" },
@@ -364,6 +376,7 @@
       statuses: DEFAULT_STATUSES,
       types: DEFAULT_TYPES,
       typeInfo: DEFAULT_TYPE_INFO,
+      statusInfo: DEFAULT_STATUS_INFO,
       hidden: [],
       params: null,
       pptxUrl: "https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js",
@@ -442,9 +455,21 @@
     let msgTimer = null;
 
     function typeDialogHtml() {
-      return '<dialog class="aia-dialog" aria-labelledby="' + ID + '-dlg-title">' +
-        '<div class="aia-dlg-head"><h3 id="' + ID + '-dlg-title">Käyttötapausten tyypit</h3>' +
-        '<button type="button" class="aia-dlg-x" data-act="dialog-close" aria-label="Sulje">×</button></div>' +
+      return '<dialog class="aia-dialog" aria-labelledby="' + ID + '-dlg-title"><div data-dlg></div></dialog>';
+    }
+
+    function dialogContent(kind) {
+      const head = (title) => '<div class="aia-dlg-head"><h3 id="' + ID + '-dlg-title">' + title + "</h3>" +
+        '<button type="button" class="aia-dlg-x" data-act="dialog-close" aria-label="Sulje">×</button></div>';
+      const foot = '<div class="aia-actions"><button type="button" class="aia-btn primary" data-act="dialog-close">Sulje</button></div>';
+      if (kind === "status") {
+        return head("Käyttötapauksen tila") +
+          '<p class="aia-note">Tila kertoo, missä vaiheessa käyttötapaus on. Päivitä tila, kun käyttötapaus etenee.</p>' +
+          '<dl class="aia-types">' + o.statuses.map((st, i) =>
+            '<div><dt><i class="aia-dot" style="background:' + st.c + '"></i>' + (i + 1) + ". " + esc(st.label) + "</dt><dd>" + esc(o.statusInfo[st.label] || "") +
+            '<br><button type="button" class="aia-btn small ghost" data-act="pick-status" data-status="' + esc(st.label) + '">Valitse tämä</button></dd></div>').join("") + "</dl>" + foot;
+      }
+      return head("Käyttötapausten tyypit") +
         '<p class="aia-note">Tyyppi kertoo, millaista työtä tekoäly tekee. Valinta on vapaaehtoinen ja auttaa vertailemaan käyttötapauksia.</p>' +
         '<dl class="aia-types">' + o.types.map((t) => {
           const inf = o.typeInfo[t] || {};
@@ -452,9 +477,13 @@
             (inf.ex && inf.ex.length ? "<ul>" + inf.ex.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>" : "") +
             '<button type="button" class="aia-btn small ghost" data-act="pick-type" data-type="' + esc(t) + '">Valitse tämä</button></dd></div>';
         }).join("") + "</dl>" +
-        '<p class="aia-note">Lähde: <a href="' + TYPE_SOURCE + '" target="_blank" rel="noopener">OpenAI: Tekoälyn käyttötapausten tunnistaminen ja skaalaaminen</a></p>' +
-        '<div class="aia-actions">' + '<button type="button" class="aia-btn primary" data-act="dialog-close">Sulje</button></div></dialog>';
+        '<p class="aia-note">Lähde: <a href="' + TYPE_SOURCE + '" target="_blank" rel="noopener">OpenAI: Tekoälyn käyttötapausten tunnistaminen ja skaalaaminen</a></p>' + foot;
     }
+    function openDialog(kind) {
+      dialog.querySelector("[data-dlg]").innerHTML = dialogContent(kind);
+      if (typeof dialog.showModal === "function") dialog.showModal(); else dialog.setAttribute("open", "");
+    }
+    function closeDialog() { if (typeof dialog.close === "function") dialog.close(); else dialog.removeAttribute("open"); }
 
     function msg(text, kind) {
       const el = $(".aia-msg");
@@ -560,8 +589,8 @@
       const c = S.draft, P = S.params, u = S.ui;
       const wnav = (k) => '<div class="aia-wnav">' + (k === 1 ? '<p class="aia-wmsg" data-wmsg role="alert"></p>' : "") +
         (k > 1 ? btn("wprev", "← Edellinen", "ghost") : "") + (k < 4 ? btn("wnext", "Seuraava →", "primary") : "") + "</div>";
-      let h = '<div class="aia-openbar" data-openbar>' + openBarHtml() + "</div>";
-      h += '<nav class="aia-stepper" aria-label="Arvioinnin vaiheet" data-stepper></nav>';
+      let h = '<nav class="aia-stepper" aria-label="Arvioinnin vaiheet" data-stepper></nav>';
+      h += '<div class="aia-openbar" data-openbar>' + openBarHtml() + "</div>";
       h += '<div class="aia-eval" data-cur="' + S.step + '"><div class="aia-form">';
       h += '<p class="aia-editing"><span data-editing></span> <span class="aia-reqnote">' + reqMark.replace(' aria-hidden="true"', "") .replace("(pakollinen)", "") + " = pakollinen tieto</span></p>";
 
@@ -576,9 +605,9 @@
           esc(u.centerOther ? c.center : "") + '"' + (u.centerOther ? "" : " hidden") + ">", "", ID + "-center", true) +
         '<div data-unitwrap>' + unitFieldHtml() + "</div></div>";
       h += '<div class="aia-row2">' +
-        field("Omistaja (rooli tai tiimi)", '<input type="text" id="' + ID + '-owner" data-f="owner" maxlength="120" value="' + esc(c.owner) + '" placeholder="esim. Rakennusvalvonnan tiimi">', "", ID + "-owner") +
+        field("Omistaja (henkilö tai tiimi)", '<input type="text" id="' + ID + '-owner" data-f="owner" maxlength="120" value="' + esc(c.owner) + '" placeholder="esim. nimi tai Rakennusvalvonnan tiimi">', "", ID + "-owner") +
         '<div class="aia-field"><div class="aia-lblrow"><label class="aia-lbl" for="' + ID + '-type">Tyyppi (valinnainen)</label>' +
-        '<button type="button" class="aia-info" data-act="type-info" aria-haspopup="dialog" title="Mitä tyypit tarkoittavat?">?<span class="aia-sr"> Mitä tyypit tarkoittavat?</span></button></div>' +
+        '<button type="button" class="aia-info" data-act="info" data-info="types" aria-haspopup="dialog" title="Mitä tyypit tarkoittavat?">?<span class="aia-sr"> Mitä tyypit tarkoittavat?</span></button></div>' +
         '<select id="' + ID + '-type" data-f="type">' + opts(o.types, c.type, "Valitse") + "</select></div></div>";
       const area = (key, idS, label, help) => field(label, '<textarea id="' + ID + "-" + idS + '" data-f="' + key + '" data-req="' + key + '" rows="3" maxlength="200" aria-required="true">' + esc(c[key]) + "</textarea>" +
         '<small class="aia-counter" data-counter="' + key + '">' + c[key].length + " / 200</small>", help, ID + "-" + idS, true);
@@ -586,12 +615,16 @@
       h += area("aiHelp", "aihelp", "Miten tekoäly auttaa?", "Mitä tekoäly tekisi tai tukisi? Mitä tarvitaan, jotta idea etenee?");
       if (showStatus || showJory) {
         h += '<div class="aia-row2">' +
-          (showStatus ? field("Tila", '<select id="' + ID + '-status" data-f="status">' + opts(o.statuses.map((s) => s.label), c.status) + "</select>", "", ID + "-status") : "<div></div>") +
+          (showStatus ? '<div class="aia-field"><div class="aia-lblrow"><label class="aia-lbl" for="' + ID + '-status">Tila</label>' +
+            '<button type="button" class="aia-info" data-act="info" data-info="status" aria-haspopup="dialog" title="Mitä tilat tarkoittavat?">?<span class="aia-sr"> Mitä tilat tarkoittavat?</span></button></div>' +
+            '<select id="' + ID + '-status" data-f="status">' + opts(o.statuses.map((s) => s.label), c.status) + "</select></div>" : "<div></div>") +
           (showJory ? '<div class="aia-field"><span class="aia-lbl">Jory-huomio</span><label class="aia-check"><input type="checkbox" data-f="jory"' + (c.jory ? " checked" : "") + "> Vaatii johtoryhmän päätöstä</label></div>" : "") + "</div>";
       }
       h += '<fieldset class="aia-privacy" data-req="privacy"><legend class="aia-lbl">Tietosuoja ja riskitaso ' + reqMark + "</legend>" + PRIVACY.map((p) =>
         '<label style="--pc:' + p.c + '"><input type="radio" name="' + ID + '-privacy" value="' + p.key + '" data-f="privacy"' + (c.privacy === p.key ? " checked" : "") + ">" +
         "<span><b>" + esc(p.label) + "</b><small>" + esc(p.desc) + "</small></span></label>").join("") + "</fieldset>";
+      h += '<ul class="aia-pguide" aria-label="Tietosuojatasojen selitteet">' + PRIVACY.map((p) =>
+        '<li data-pg="' + p.key + '" class="' + (c.privacy === p.key ? "on" : "") + '" style="--pc:' + p.c + '"><b>' + esc(p.label) + ":</b> " + esc(p.guide) + "</li>").join("") + "</ul>";
       h += wnav(1) + "</section>";
 
       h += '<section class="aia-card" data-wstep="2"><h3><span class="aia-step">2</span>Arviointi</h3>' +
@@ -627,16 +660,23 @@
         field("Työtunnin arvo, € / h", '<input type="number" inputmode="decimal" min="0" max="1000" step="1" id="' + ID + '-hv" data-hv value="' + P.hourValue + '">',
           "Koskee kaikkia arviointeja. Oletus " + fiNum(DEF.hourValue) + " €/h.", ID + "-hv") +
         "</div>" + wnav(3) + "</section>";
-      h += '<section class="aia-card" data-wstep="4"><h3><span class="aia-step">4</span>Tulos ja tallennus</h3><div data-summary></div>' + wnav(4) + "</section>";
+      const dls = [["json", "Lataa JSON koneelle"], ["pptx", "Lataa PowerPoint"], ["pdf", "Lataa PDF"], ["csv", "Lataa CSV"]].filter((k) => !hide(k[0]));
+      h += '<section class="aia-card" data-wstep="4"><h3><span class="aia-step">4</span>Tulos ja tallennus</h3>' +
+        '<div class="aia-savebox"><h4>Tallenna ja lataa</h4>' +
+        '<p class="aia-note"><b>Tallenna arviointi</b> tallentaa arvioinnin tämän selaimen muistiin tällä koneella. Se ei näy muille eikä siirry toiselle koneelle tai selaimelle, ja se voi kadota, jos selaimen tiedot tyhjennetään.</p>' +
+        '<p class="aia-note"><b>Lataa JSON-tiedosto</b> varmuuskopioksi tai lähettääksesi arvioinnin eteenpäin. Sen voi tuoda takaisin <i>Tuo arviointi (JSON)</i> -painikkeella.</p>' +
+        '<div class="aia-actions">' + btn("save", "Tallenna arviointi", "primary", " data-savebtn") +
+        dls.map((k) => btn(k[0] + "-one", k[1], "")).join("") +
+        btn("save-new", "Tallenna uutena", "ghost", " data-savenew hidden") + btn("new", "Tee uusi arviointi", "ghost") +
+        (hide("roadmapBlock") ? "" : btn("copy-block", "Kopioi tiekarttalohkona", "ghost", ' title="Valmis lohko content/tiekartta.md-tiedostoon"')) + "</div>" +
+        '<p class="aia-savestate" data-savestate role="status" aria-live="polite"></p>' +
+        '<p class="aia-note" data-savenewinfo hidden><b>Tallenna uutena</b> tekee arvioinnista kopion uudella nimellä. Alkuperäinen arviointi säilyy ennallaan – käytä tätä, kun haluat arvioida muunnelman samasta ideasta.</p>' +
+        "<div data-block></div></div>" + '<h4 class="aia-sub">Tarkista tiedot</h4><div data-summary></div>' + wnav(4) + "</section>";
       h += "</div>";
 
       h += '<aside class="aia-result" aria-label="Tulos"><div data-result></div>' +
         '<p class="aia-note aia-r13">Tulos päivittyy sitä mukaa kuin täytät tietoja. Tallennus tehdään vaiheessa 4.</p>' +
-        '<div class="aia-r4"><div class="aia-actions">' + btn("save", "Tallenna arviointi", "primary", " data-savebtn") +
-        btn("save-new", "Tallenna uutena", "", " data-savenew hidden") +
-        (hide("roadmapBlock") ? "" : btn("copy-block", "Kopioi tiekarttalohkona", "", ' title="Valmis lohko content/tiekartta.md-tiedostoon"')) + "</div>" +
-        '<p class="aia-savestate" data-savestate role="status" aria-live="polite"></p>' +
-        exportBtns("one") + '<div data-block></div></div></aside></div>';
+        "</aside></div>";
       panel("arvioi").innerHTML = h;
       updateResult();
       applyStep(false);
@@ -656,7 +696,8 @@
           '<span class="n">' + (done ? "✓" : k) + '</span><span class="t">' + t + "</span></button></li>";
       }).join("") + "</ol>";
       if (S.step === 4) renderStepSummary();
-      if (scroll && nav.scrollIntoView) nav.scrollIntoView({ behavior: "smooth", block: "start" });
+      const ev = pnl.querySelector(".aia-eval");
+      if (scroll && ev && ev.getBoundingClientRect().top < 0) ev.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     function goStep(k) {
@@ -678,7 +719,7 @@
         .concat(showJory ? [["Jory-huomio", c.jory ? "Kyllä, vaatii johtoryhmän päätöstä" : "Ei"]] : [])
         .concat([["Ongelma ja tavoite", c.problem], ["Miten tekoäly auttaa", c.aiHelp], ["★ Avainkriteerit", stars.join(", ")],
           ["Hyöty–kustannus", e.benefit > 0 || e.cost > 0 ? fiNum(e.benefit) + " € / v työajan arvo, " + fiNum(e.cost) + " € / v kustannus" + (e.ratio != null ? " (" + fiNum(e.ratio, 1) + "×)" : "") : ""]]);
-      el.innerHTML = '<p class="aia-note">Tarkista tiedot ja tallenna. Voit palata muokkaamaan vaihetta painamalla sen numeroa yllä.</p>' +
+      el.innerHTML = '<p class="aia-note">Voit palata muokkaamaan vaihetta painamalla sen numeroa yllä.</p>' +
         '<dl class="aia-sumlist">' + rows.map((r) => "<div><dt>" + esc(r[0]) + "</dt><dd>" + (r[1] ? esc(r[1]) : '<span class="aia-muted">–</span>') + "</dd></div>").join("") + "</dl>";
     }
 
@@ -717,6 +758,7 @@
       const saved = isSaved(), u = S.ui;
       const b = pnl.querySelector("[data-savebtn]"); if (b) b.textContent = saved ? "Tallenna muutokset" : "Tallenna arviointi";
       const bn = pnl.querySelector("[data-savenew]"); if (bn) bn.hidden = !saved;
+      const bi = pnl.querySelector("[data-savenewinfo]"); if (bi) bi.hidden = !saved;
       let cls = "", t = "";
       if (u.saveErr) { cls = "error"; t = u.saveErr; }
       else if (u.saveWarn) { cls = "warn"; t = u.saveWarn; }
@@ -1416,17 +1458,13 @@
         case "wprev": goStep(S.step - 1); break;
         case "wnext": goStep(S.step + 1); break;
         case "goto-omat": showTab("omat"); break;
-        case "type-info":
-          if (typeof dialog.showModal === "function") dialog.showModal(); else dialog.setAttribute("open", "");
-          break;
-        case "dialog-close":
-          if (typeof dialog.close === "function") dialog.close(); else dialog.removeAttribute("open");
-          break;
-        case "pick-type": {
-          S.draft.type = b.dataset.type;
-          const sel = panel("arvioi").querySelector("#" + ID + "-type"); if (sel) sel.value = S.draft.type;
-          if (typeof dialog.close === "function") dialog.close(); else dialog.removeAttribute("open");
-          touch(); break;
+        case "info": openDialog(b.dataset.info); break;
+        case "dialog-close": closeDialog(); break;
+        case "pick-type": case "pick-status": {
+          const k = act === "pick-type" ? "type" : "status";
+          S.draft[k] = act === "pick-type" ? b.dataset.type : b.dataset.status;
+          const sel = panel("arvioi").querySelector("#" + ID + "-" + k); if (sel) sel.value = S.draft[k];
+          closeDialog(); touch(); break;
         }
         case "save": {
           if (!validate(true)) { msg("Arviointia ei tallennettu: täytä pakolliset tiedot.", "error"); break; }
@@ -1564,7 +1602,10 @@
       if (t.dataset.f) {
         const k = t.dataset.f, pnl = panel("arvioi"), u = S.ui;
         if (k === "jory") S.draft.jory = t.checked;
-        else if (k === "privacy") S.draft.privacy = t.value;
+        else if (k === "privacy") {
+          S.draft.privacy = t.value;
+          pnl.querySelectorAll("[data-pg]").forEach((li) => li.classList.toggle("on", li.dataset.pg === t.value));
+        }
         else if (k === "center") {
           const txt = pnl.querySelector("#" + ID + "-centertext");
           u.centerOther = t.value === OTHER;
