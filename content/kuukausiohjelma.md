@@ -1,233 +1,219 @@
 # Kuukausiohjelma
-Kuukausiohjelman materiaalia ja ohjelmaa päivitetään tarpeiden mukaan. Tee sivustosta helposti päivitettävä, jotta voin lisätä uutta materiaalia tarvittaessa.
+<!--
+Kuukausiohjelman materiaalia ja ohjelmaa päivitetään tarpeiden mukaan.
 
----------------------------------------------------------
-Kevätkausi: Perusteet ja AI-lähettiläiden käynnistys (tammi–kesä)
-## tammikuu - Tekoälyn perusteet, tietoturva ja AI-lähettiläiden rooli sekä tiekartan avaus
-Käydään läpi Copilotin toiminta, kaupungin tietosuojalinjaukset ja tekoälyn eettiset periaatteet. Esitellään AI-lähettilästoiminnan tavoitteet ja sovitaan viestinnästä.
+Muotoiluohje (sivu lukee tämän tiedoston sellaisenaan):
+- Kausi: "# ... Kevätkausi (...)" tai "# ... Syyskausi (...)"
+- Kuukausi: "## Tammikuu – Teeman nimi"
+- Valinnaiset rivit kuukauden alla: "Tapaaminen: to 14.1.2027 klo 13" ja "Tila: valmis / käynnissä / tulossa"
+- "**Yhteinen tavoite:** teksti"
+- "* **Polku A: Vasta-alkajat (painopiste)**" ja "* **Polku B: Edistyneet (painopiste)**"
+-   "  * **Tehtävä:** teksti"
+-   "  * **Täsmämateriaalit:**" ja sen alle sisennettynä "    * [Linkin teksti](https://...)"
+- Muut "## Otsikko" -osiot (esim. tietopankki, viestintä) näkyvät sivun alaosassa.
+-->
 
-### Materiaalia oppimista tukemaan:
-#### Maksuttomat
-Tekoälyn perusteet
-[Elements of AI](https://course.elementsofai.com/fi/)
-- Mitä tekoäly on?
-- Ongelmanratkaisu tekoälyn avulla
+# AI-lähettiläiden kuukausiohjelma: Kevätkausi (tammi–kesä)
 
-Copilot ja agentit - perusteet
-[Get started with Microsoft Copilot](https://learn.microsoft.com/en-us/training/modules/get-started-with-copilot/)
-[Copilot Studio Agent Academy](https://learn.microsoft.com/en-us/shows/copilot-studio-agent-academy/?levels=beginner)
-[How to Use the Agent Builder in Microsoft Copilot](https://www.youtube.com/watch?v=knOhSmOkqMM)
-[Luo oma agenttisi Microsoft Copilot avulla](https://support.microsoft.com/fi-fi/microsoft-365-copilot/build-your-own-agent-with-microsoft-365-copilot)
-[Luo oma Microsoft-polku ja valitse kiinnostavia teemoja tekoälystä](https://learn.microsoft.com/en-us/training/browse/ )
-[Ota Copilot haltuun - Kaupungin omien keväällä 2026 ja vuonna 2025 pidettyjen Copilot-koulutusten tallenteet - intra](https://tampereenseutu.sharepoint.com/sites/KLAAjankohtaista/SitePages/Ota-Copilot-haltuun-%E2%80%93-koulutuksia-ja-tallenteita-silloin%2C-kun-sinulle-sopii!.aspx)
-[Kangasalan maksuttomia koulutuspalveluja - Intra](https://tampereenseutu.sharepoint.com/sites/KLAHenkilostoasiat/SitePages/Maksuttomia-koulutuspalveluja.aspx)
+## 📚 Yhteinen tietopankki (Kaikille lähettiläille)
+*Nämä perusmateriaalit tukevat oppimista koko kevään ajan. Tutustu omaan tahtiin.*
 
-Tietosuoja ja AI
-- Tietosuoja ja AI (Kehyskuntien tiedonhallintamallin läpikäynti)
-[Tekoälyn vastuullinen hyödyntäminen](https://kehittajille.suomi.fi/oppaat/vastuullinen-tekoaly)
+### Kansallinen AI-kehitys ja ohjeistukset
+* [Julkisen hallinnon tekoälymuutos (Tekoälymuutos 2036)](https://www.tekoalymuutos.fi/)
+* [Tekoälyn vastuullinen hyödyntäminen (Suomi.fi)](https://kehittajille.suomi.fi/oppaat/vastuullinen-tekoaly)
+* [Asiantuntijatyön muutos tekoälyn aikana (DVV & Kela)](https://dvv.fi/asiantuntijatyon-muutos-tekoalyn-aikana)
+* [Euroopan tietosuojaneuvoston ohjeet anonymisoinnista ja tiedonharavoinnista](https://tietosuoja.fi/-/euroopan-tietosuojaneuvosto-julkaisi-ohjeet-anonymisoinnista-ja-tiedonharavoinnista)
+* [Sujuva Suomi -keskustelu 12.11.2026: Tekoäly on kaikkialla – onko tekoälylukutaitoa?](https://dvv.fi/-/sujuva-suomi-keskustelu-11-12-2026-onko-tekoalylukutaitoa)
 
-Suositellut lisämateriaalit: agenttien perusteet
-[Scale how you work by creating AI agents (Microsoft Learn)](https://learn.microsoft.com/en-us/training/modules/scale-work-creating-ai-agents/)
-[Write effective prompts to achieve optimal results (Microsoft Learn)](https://learn.microsoft.com/en-us/training/modules/write-effective-prompts-do-more-prompting)
+### Kansainväliset oppaat ja sääntely
+* [EU AI Act -opas ja aikataulut](https://docs.modulos.ai/frameworks/eu-ai-act)
+* [OpenAI-oppaat organisaatioille](https://openai.com/fi-FI/business/learn/?tab=guides)
+* [Claude Academy -verkkokurssit](https://academy.claude.com/)
+* [Gemini Academy -koulutusohjelma](https://grow.google/intl/en_my/gemini-academy/)
 
-#### Maksulliset
-Lisätään myöhemmin...
+* **Tekoälyn perusteet:** [Elements of AI -verkkokurssi](https://elementsofai.com)
+* **Vastuullisuus ja tietoturva:** [Tekoälyn vastuullinen hyödyntäminen (Suomi.fi)](https://kehittajille.suomi.fi/oppaat/vastuullinen-tekoaly) & Kaupungin tietosuojalinjaukset
+* **Kaupungin omat koulutukset:** [Ota Copilot haltuun -tallenteet (Intra)](https://tampereenseutu.sharepoint.com/sites/KLAAjankohtaista/SitePages/Ota-Copilot-haltuun-%E2%80%93-koulutuksia-ja-tallenteita-silloin%2C-kun-sinulle-sopii!.aspx) & [Kangasalan maksuttomat koulutuspalvelut (Intra)](https://tampereenseutu.sharepoint.com/sites/KLAHenkilostoasiat/SitePages/Maksuttomia-koulutuspalveluja.aspx)
+* **Microsoftin oppimispolut:** [Selaa Microsoft Learn -tekoälykoulutuksia](https://learn.microsoft.com/fi-fi/training/browse/)
 
----------------------------------------------------------
-## helmikuu - Copilot Agent Builder ja tiekartan "matalalla roikkuvat hedelmät"
-Harjoitellaan ensimmäisten kevyiden agenttien rakentamista suoraan Microsoft 365 -ympäristössä. AI-lähettiläät jakavat vinkkejä siitä, miten omien tiimien arjen rutiineja voi tehostaa.
+---
 
-### Materiaalia oppimista tukemaan:
-#### Maksuttomat
-Tekoälyn perusteet
-[Elements of AI](https://course.elementsofai.com/fi/)
-- Tekoälyn käytännön sovellukset
+## Tammikuu – Tekoälyn perusteet, tietoturva ja AI-lähettilään rooli
+**Yhteinen tavoite:** Ymmärrämme Copilotin toimintaperiaatteet, kaupungin tietoturva- ja tietosuojalinjaukset sekä AI-lähettilään roolin omassa työyhteisössä. Avaamme yhteisen tiekartan ja sovimme viestintäkäytännöistä.
 
-Copilot ja agentit - perusteet, tekeminen ja käyttö
-[Build agents in Agent Builder](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/agent-builder-build-agents)
-[Ota Copilot haltuun - Kaupungin omien keväällä 2026 ja vuonna 2025 pidettyjen Copilot-koulutusten tallenteet](https://tampereenseutu.sharepoint.com/sites/KLAAjankohtaista/SitePages/Ota-Copilot-haltuun-%E2%80%93-koulutuksia-ja-tallenteita-silloin%2C-kun-sinulle-sopii!.aspx)
-[Kangasalan maksuttomia koulutuspalveluja - Intra](https://tampereenseutu.sharepoint.com/sites/KLAHenkilostoasiat/SitePages/Maksuttomia-koulutuspalveluja.aspx)
-[Tekoäly julkishallinnossa: Edut, käyttötapaukset ja sovellukset](https://www.microsoft.com/fi-fi/copilot/ai-knowledge/ai-for-government)
+* **Polku A: Vasta-alkajat (Perusteet haltuun)**
+  * **Tehtävä:** Kokeile Copilotia omassa arjessasi (esim. sähköpostin luonnostelu tai pitkän asiakirjan tiivistäminen) tietoturvaohjeet huomioiden. Suorita *Elements of AI* -kurssin osat 1–2.
+  * **Täsmämateriaalit:** 
+    * [Get started with Microsoft Copilot (Microsoft Learn)](https://learn.microsoft.com/en-us/training/modules/get-started-with-copilot/)
+    * [Build foundational generative AI skills -oppimispolku (Microsoft Learn)](https://learn.microsoft.com/en-us/training/paths/explore-microsoft-365-copilot-business-chat/)
 
-Suositellut lisämateriaalit: Agent Builder käytännössä
-[Build agents in Copilot Chat – Online workshop (Microsoft Learn)](https://learn.microsoft.com/en-us/training/modules/agents-copilot-chat)
-[Exercise: Create a Copilot Chat agent (Microsoft Learn)](https://learn.microsoft.com/en-us/training/modules/scale-work-creating-ai-agents/4-exercise-create-copilot-chat-agent)
-[Build and manage an agent – Copilot Chat ja SharePoint (Microsoft Learn)](https://learn.microsoft.com/en-us/training/modules/build-manage-no-code-copilot-agent-sharepoint)
-[Craft effective prompts for Microsoft 365 Copilot – oppimispolku (Microsoft Learn)](https://learn.microsoft.com/en-us/training/paths/craft-effective-prompts-copilot-microsoft-365/)
+* **Polku B: Edistyneet (Kehotetekniikat ja roolitus)**
+  * **Tehtävä:** Rakenna omaan työhösi 2–3 uudelleenkäytettävää, monivaiheista kehotepohjaa ja jaa ne muiden lähettiläiden käyttöön. Voit toimia vertaistukena.
+  * **Täsmämateriaalit:** 
+    * [Luo oma agenttisi Microsoft Copilotin avulla (Microsoft Tuki)](https://support.microsoft.com/fi-fi/microsoft-365-copilot/build-your-own-agent-with-microsoft-365-copilot)
+    * [Microsoft Copilot Prompt Gallery -kehotekirjasto](https://adoption.microsoft.com/en-us/copilot/prompt-gallery/)
 
-#### Maksulliset
-Lisätään myöhemmin...
+---
 
----------------------------------------------------------
-## maaliskuu - Copilot Studio ja ohjatut keskustelupolut ja tiekartan priorisointia
-Tutkitaan Copilot Studion mahdollisuuksia ja hinnoittelua ja opitaan rakentamaan logiikkaan perustuvia keskustelupolkuja. Harjoitellaan monimutkaisempien kysymysten ja vastausten hallintaa.
+## Helmikuu – Copilot Agent Builder ja matalalla roikkuvat hedelmät
+**Yhteinen tavoite:** Tunnistamme oman yksikön rutiinitehtävät, joita voidaan tehostaa tekoälyllä, ja tutustumme kevyiden agenttien rakentamiseen suoraan M365-ympäristössä.
 
-### Materiaalia oppimista tukemaan:
-#### Maksuttomat
-Tekoälyn perusteet - syventävää tietoa
-[Elements of AI](https://course.elementsofai.com/fi/)
-- Koneoppiminen
-- Neuroverkot
+* **Polku A: Vasta-alkajat (Ensimmäinen oma agentti)**
+  * **Tehtävä:** Tutustu valmiisiin agenttimalleihin ja rakenna yksi yksinkertainen henkilökohtainen apuri (esim. tekstin oikolukija tai kokousmuistioiden jäsentelijä) ilman ulkoisia tietolähteitä.
+  * **Täsmämateriaalit:** 
+    * [Video: How to Use the Agent Builder in Microsoft Copilot](https://www.youtube.com/watch?v=knOhSmOkqMM)
+    * [Luo oma agenttisi kehotteen tai mallin avulla (Microsoft Tuki)](https://support.microsoft.com/fi-fi/microsoft-365-copilot/build-your-own-agent-with-microsoft-365-copilot)
+* **Polku B: Edistyneet (Tiimiagentit ja ohjeistuksen optimointi)**
+  * **Tehtävä:** Rakenna tiimillesi hyödyllinen agentti, hio sen ohjeet (*Instructions*) ja aloituskehotteet (*Starter Prompts*) tarkaksi ja jaa se testikäyttöön.
+  * **Täsmämateriaalit:** 
+    * [Build agents in Agent Builder -dokumentaatio (Microsoft Learn)](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/agent-builder-build-agents)
+    * [Tekoäly julkishallinnossa: Edut ja käyttötapaukset (Microsoft)](https://www.microsoft.com/fi-fi/copilot/ai-knowledge/ai-for-government)
 
-[Ota Copilot haltuun - Kaupungin omien keväällä 2026 ja vuonna 2025 pidettyjen Copilot-koulutusten tallenteet](https://tampereenseutu.sharepoint.com/sites/KLAAjankohtaista/SitePages/Ota-Copilot-haltuun-%E2%80%93-koulutuksia-ja-tallenteita-silloin%2C-kun-sinulle-sopii!.aspx)
-[Kangasalan maksuttomia koulutuspalveluja - Intra](https://tampereenseutu.sharepoint.com/sites/KLAHenkilostoasiat/SitePages/Maksuttomia-koulutuspalveluja.aspx)
+---
 
+## Maaliskuu – Copilot Studio, keskustelupolut ja tiekartan priorisointi
+**Yhteinen tavoite:** Ymmärrämme kevyen Agent Builderin ja laajemman Copilot Studion erot sekä kustannusvaikutukset. Priorisoimme kaupungin tiekartan kehityskohteita.
 
-Tietosuoja ja AI
-[Tekoälyn vastuullinen hyödyntäminen](https://kehittajille.suomi.fi/oppaat/vastuullinen-tekoaly)
+* **Polku A: Vasta-alkajat (Agenttien jatkokehitys ja jakaminen)**
+  * **Tehtävä:** Harjoittele oman agenttisi vastausten laadun parantamista tarkentamalla sille annettuja ohjeita ja testaamalla erilaisia kysymyksiä. Suorita *Elements of AI* -kurssista koneoppimisen perusteet.
+  * **Täsmämateriaalit:** 
+    * [Elements of AI: Koneoppiminen ja neuroverkot](https://elementsofai.com)
+    * [Get started with Microsoft Copilot Studio -peruskurssi (Microsoft Learn)](https://learn.microsoft.com/en-us/training/modules/power-virtual-agents-bots/)
+* **Polku B: Edistyneet (Keskustelupolut ja Copilot Studio)**
+  * **Tehtävä:** Tutustu Copilot Studion logiikkaan perustuviin keskustelupolkuihin ja arvioi, millaisiin kaupungin tarpeisiin se soveltuu kustannustehokkaasti.
+  * **Täsmämateriaalit:** 
+    * [Copilot Studio Agent Academy -videosarja (Microsoft Learn)](https://learn.microsoft.com/en-us/shows/copilot-studio-agent-academy/)
+    * [Design agent conversations using topics -koulutus (Microsoft Learn)](https://learn.microsoft.com/en-us/training/modules/copilot-studio-topics/)
+    * [Video: Topics in Copilot Studio Explained](https://www.youtube.com/watch?v=gMov_OJ5bMg)
 
-Copilot ja agentit - edistyneempi käyttö
+---
 
-Suositellut lisämateriaalit: Copilot Studio ja keskustelupolut
-[Design agent conversations using topics (Microsoft Learn)](https://learn.microsoft.com/en-us/training/modules/copilot-studio-topics/)
-[Design agent conversations and responses using topics – oppimispolku (Microsoft Learn)](https://learn.microsoft.com/en-us/training/paths/design-agent-conversations-responses-topics-copilot-studio/)
-[Create and publish agents with Microsoft Copilot Studio – oppimispolku (Microsoft Learn)](https://learn.microsoft.com/en-us/training/paths/work-power-virtual-agents/)
-[Build your first declarative agent by using Copilot Studio (Microsoft Learn)](https://learn.microsoft.com/en-us/training/modules/build-your-first-agent-microsoft-365-copilot-use-copilot-studio/)
+## Huhtikuu – Kuntakentän benchmark – Muiden kaupunkien AI-teot
+**Yhteinen tavoite:** Saamme inspiraatiota ja oppeja muiden suomalaisten kuntien ja julkisen sektorin tekoälyratkaisuista. Peilaamme ulkopuolisia oppeja omaan tiekarttaamme.
 
-#### Maksulliset
-Lisätään myöhemmin...
+* **Polku A: Vasta-alkajat (Ideoiden soveltaminen omaan yksikköön)**
+  * **Tehtävä:** Poimi vierailijapuheenvuorosta tai kuntakentän esimerkeistä vähintään yksi idea, jota voisit kokeilla omassa tiimissäsi kevyellä Copilot-käytöllä.
+  * **Täsmämateriaalit:** 
+    * [Elements of AI: Tekoälyn vaikutukset](https://elementsofai.com)
+    * [Asiantuntijatyön muutos tekoälyn aikana – käytännön kokeilut (DVV & Kela)](https://dvv.fi/asiantuntijatyon-muutos-tekoalyn-aikana)
+* **Polku B: Edistyneet (Ratkaisujen arkkitehtuuri ja skaalaus)**
+  * **Tehtävä:** Arvioi muiden kuntien toteutusten teknistä toteutettavuutta ja tietoturvaa omassa ympäristössämme. Tee ehdotus tiekartan täydentämisestä.
+  * **Täsmämateriaalit:** 
+    * [Julkisen hallinnon tekoälymuutos 2036 -toimenpiteet](https://www.tekoalymuutos.fi/)
+    * [Tekoälyn vastuullinen hyödyntäminen (Suomi.fi)](https://kehittajille.suomi.fi/oppaat/vastuullinen-tekoaly)
 
----------------------------------------------------------
-## huhtikuu - Kuntakentän benchmark – Muiden kaupunkien AI-teot
-Järjestetään teemasessio, jossa tutustutaan muiden suomalaisten kaupunkien ja kuntien tekoälyratkaisuihin. Kutsutaan vieraileva puhuja jakamaan kokemuksia julkisen sektorin onnistumisista ja haasteista. Peilataan ulkopuolisia oppeja omaan tiekarttaan(mahdolliset täydennykset).
+---
 
-### Materiaalia oppimista tukemaan:
-#### Maksuttomat
-Tekoälyn perusteet - syventävää tietoa
-[Elements of AI](https://course.elementsofai.com/fi/)
-- Tekoälyn vaikutukset
+## Toukokuu – Tietolähteet (RAG) ja työnkulkujen automatisointi
+**Yhteinen tavoite:** Ymmärrämme, miten tekoäly hyödyntää organisaation omia tiedostoja luotettavasti, ja näemme esimerkkejä rutiinien automatisoinnista.
 
-Tietosuoja ja AI
-[Tekoälyn vastuullinen hyödyntäminen](https://kehittajille.suomi.fi/oppaat/vastuullinen-tekoaly)
+* **Polku A: Vasta-alkajat (Omien tiedostojen kytkeminen agenttiin)**
+  * **Tehtävä:** Liitä omaan Agent Builder -agenttiisi 1–3 rajattua ohjedokumenttia tai julkinen verkkosivu tietolähteeksi ja testaa, että agentti vastaa vain niiden pohjalta. 
+  * **Täsmämateriaalit:** 
+    * [Add knowledge sources in Agent Builder -ohje (Microsoft Learn)](https://microsoft.com#add-knowledge-sources)
+    * [Create your first cloud flow using Copilot in Power Automate (Microsoft Learn)](https://learn.microsoft.com/en-us/power-automate/create-cloud-flow-using-copilot)
+* **Polku B: Edistyneet (SharePoint-lähteet ja Power Automate)**
+  * **Tehtävä:** Kytke agentti laajempaan SharePoint-ympäristöön ja rakenna yksinkertainen työnkulku (esim. palautteen ohjaus tai ilmoituksen lähetys) kohti tuotantokäyttöä. Tutkitaan myös tässä vaiheessa tarkemmin Copilot Studio ja tämän lisenssitilannetta sekä kustannuksia.
+  * **Täsmämateriaalit:** 
+    * [Add SharePoint as a knowledge source in Copilot Studio (Microsoft Learn)](https://learn.microsoft.com/en-us/microsoft-copilot-studio/knowledge-add-sharepoint)
+    * [Use Agent Flows in Copilot Studio -koulutus (Microsoft Learn)](https://learn.microsoft.com/fi-fi/training/modules/use-agent-flows/)
+    * [Build Power Automate flows for your agent -työpaja (Microsoft Learn)](https://learn.microsoft.com/en-us/training/modules/build-flows-chatbot-online-workshop/)
 
-[Ota Copilot haltuun - Kaupungin omien keväällä 2026 ja vuonna 2025 pidettyjen Copilot-koulutusten tallenteet](https://tampereenseutu.sharepoint.com/sites/KLAAjankohtaista/SitePages/Ota-Copilot-haltuun-%E2%80%93-koulutuksia-ja-tallenteita-silloin%2C-kun-sinulle-sopii!.aspx)
-[Kangasalan maksuttomia koulutuspalveluja - Intra](https://tampereenseutu.sharepoint.com/sites/KLAHenkilostoasiat/SitePages/Maksuttomia-koulutuspalveluja.aspx)
+---
 
+## Kesäkuu – Kevään demopäivä, viestintä ja jory-katsaus
+**Yhteinen tavoite:** Teemme kevään opit näkyväksi koko organisaatiolle, arvioimme saavutetut hyödyt (esim. säästetty työaika) ja kokoamme parhaat käytännöt intranetiin ennen kesälomia.
 
-Copilot ja agentit - edistyneempi käyttö
+* **Polku A: Vasta-alkajat (Arjen vinkkien ja onnistumisten jakaminen)**
+  * **Tehtävä:** Esittele demopäivässä tai intranetin koosteessa yksi käytännön vinkki, kehote tai kevyt agentti, joka on helpottanut omaa tai tiimisi työtä.
+  * **Täsmämateriaalit:** [Kaupungin omat Copilot-koulutustallenteet (Intra)](https://sharepoint.com)
+* **Polku B: Edistyneet (Ratkaisujen esittely ja hyötyjen arviointi)**
+  * **Tehtävä:** Demota keväällä rakennettuja tiimiagentteja tai automaatioita koko organisaatiolle ja osallistu hyötyarvioinnin koostamiseen johtoryhmää varten.
+  * **Täsmämateriaalit:** [Asiantuntijatyön muutos tekoälyn aikana – hyötyjen arviointi (DVV & Kela)](https://dvv.fi/asiantuntijatyon-muutos-tekoalyn-aikana)
 
-#### Maksulliset
-Lisätään myöhemmin...
+---
+# AI-lähettiläiden kuukausiohjelma: Syyskausi (elo–joulu)
 
----------------------------------------------------------
-## toukokuu - Tietolähteet (RAG) ja Power Automate -toiminnot
-Opitaan kytkemään agentit kaupungin SharePoint-ympäristöihin ja julkisiin verkkosivuihin. Rakennetaan yksinkertaisia automaatioita, kuten palautteiden ohjaamista tai sähköposti-ilmoituksia. Tiekartan kehityskohteita viedään kohti tuotantoa ja huomioidaan hyötyjen seuranta.
+## Elokuu – Kertaus, kehotemuotoilu ja syksyn viestintäsuunnitelma
+**Yhteinen tavoite:** Palautamme kevään opit mieleen kesän jälkeen, päivitämme yksiköiden uudet tarpeet tiekartalle ja käynnistämme syksyn viestinnän.
 
-### Materiaalia oppimista tukemaan:
-#### Maksuttomat
-Copilot ja agentit - edistyneempi käyttö
+* **Polku A: Vasta-alkajat (Rutiinien kertaaminen ja kehoteopit)**
+  * **Tehtävä:** Kertaa kevään aikana rakentamiesi kehotteiden ja kevyiden agenttien toiminta. Päivitä ne vastaamaan syksyn työtehtäviäsi ja kerää tiimiltäsi uusia ideoita tiekartalle.
+  * **Täsmämateriaalit:** 
+    * [OpenAI-oppaat organisaatioille – kehotemuotoilun perusteet](https://openai.com/fi-FI/business/learn/?tab=guides)
+    * [Gemini Academy – tuottavuus ja turvallinen käyttö arjessa](https://grow.google/intl/en_my/gemini-academy/)
+* **Polku B: Edistyneet (Kehittynyt kehotemuotoilu ja tarpeiden kartoitus)**
+  * **Tehtävä:** Harjoittele ketjutettua kehotemuotoilua (*Prompt Engineering*) monimutkaisempiin analyysi- tai suunnittelutehtäviin. Koosta yksikkösi uudet kehitystarpeet tiekartan päivitystä varten.
+  * **Täsmämateriaalit:** 
+    * [Claude Academy: AI Fluency – Framework and foundations](https://academy.claude.com/)
+    * [Claude Academy: Building effective human-agent teams](https://academy.claude.com/)
 
-[Ota Copilot haltuun - Kaupungin omien keväällä 2026 ja vuonna 2025 pidettyjen Copilot-koulutusten tallenteet](https://tampereenseutu.sharepoint.com/sites/KLAAjankohtaista/SitePages/Ota-Copilot-haltuun-%E2%80%93-koulutuksia-ja-tallenteita-silloin%2C-kun-sinulle-sopii!.aspx)
-[Kangasalan maksuttomia koulutuspalveluja - Intra](https://tampereenseutu.sharepoint.com/sites/KLAHenkilostoasiat/SitePages/Maksuttomia-koulutuspalveluja.aspx)
+---
 
+## Syyskuu – Kuntakentän benchmark II
+**Yhteinen tavoite:** Tutustumme muiden kaupunkien edistyneempiin toteutuksiin, kuten verkkosivujen asiakaspalveluagentteihin ja järjestelmäintegraatioihin, ja verkostoidumme kuntakentän toimijoiden kanssa.
 
-Tietosuoja ja AI
-[Tekoälyn vastuullinen hyödyntäminen](https://kehittajille.suomi.fi/oppaat/vastuullinen-tekoaly)
+* **Polku A: Vasta-alkajat (Palveluiden sujuvoittaminen ja asiakasnäkökulma)**
+  * **Tehtävä:** Tutustu muiden kaupunkien ratkaisuihin ja pohdi, miten vastaavat ideat voisivat helpottaa oman yksikkösi asiakaspalvelua tai sisäistä tiedonhakua kevyillä työkaluilla.
+  * **Täsmämateriaalit:** 
+    * [Asiantuntijatyön muutos tekoälyn aikana – käytännön kokeilut (DVV & Kela)](https://dvv.fi/asiantuntijatyon-muutos-tekoalyn-aikana)
+    * [Tekoäly ja kunnan viestintä – käytännön vinkit (Kuntaliitto)](https://www.kuntaliitto.fi/kuntajohtaminen-ja-digitalisaatio/tekoaly/tekoaly-ja-kunnan-viestinta)
+* **Polku B: Edistyneet (Arkkitehtuuri, integraatiot ja verkostoituminen)**
+  * **Tehtävä:** Analysoi muiden kaupunkien asiakaspalveluagenttien ja rajapintaintegraatioiden teknisiä ratkaisuja. Osallistu aktiivisesti Kuntaliiton, DigiFinlandin ja muiden kaupunkien digikehittäjien verkostoihin.
+  * **Täsmämateriaalit:** 
+    * [Julkisen hallinnon tekoälymuutos 2036 – Agenttinen Suomi ja toimenpiteet](https://www.tekoalymuutos.fi/)
+    * [Kuntien digitalisaatiokartoitus: Tekoälyratkaisujen nykytila (Kuntaliitto)](https://www.kuntaliitto.fi/julkaisut/digitalisaatiokartoitus-2024/10-tekoalyratkaisujen-hyodyntamisen-nykytila-ja-nakymat)
+    * [Julkisen sektorin tekoälykokeilut ja ekosysteemi (DigiFinland)](https://digifinland.fi/sote-tekoalyn-ekosysteemi/kokeiluprojektit/)
 
-Suositellut lisämateriaalit: tietolähteet ja automaatiot
-[Knowledge sources summary – Copilot Studio (Microsoft Learn)](https://learn.microsoft.com/en-us/microsoft-copilot-studio/knowledge-copilot-studio)
-[Add SharePoint as a knowledge source – Copilot Studio (Microsoft Learn)](https://learn.microsoft.com/en-us/microsoft-copilot-studio/knowledge-add-sharepoint)
-[Agent flows overview – Copilot Studio (Microsoft Learn)](https://learn.microsoft.com/en-us/microsoft-copilot-studio/flows-overview)
-[Demonstrate the capabilities of Microsoft Power Automate (Microsoft Learn)](https://learn.microsoft.com/en-us/training/modules/introduction-power-automate/)
+---
 
-#### Maksulliset
-Lisätään myöhemmin...
+## Lokakuu – Hallintamalli (Governance), analytiikka ja laadunvalvonta
+**Yhteinen tavoite:** Varmistamme, että käytössä olevat agentit ovat turvallisia, laadukkaita ja EU:n tekoälysäädöksen mukaisia. Keräämme palautetta loppukäyttäjiltä ja kokoamme yksiköiden hyötyarviot.
 
+* **Polku A: Vasta-alkajat (Laadunvarmistus ja palautteen kerääminen)**
+  * **Tehtävä:** Tarkista omien agenttiesi tietolähteiden ajantasaisuus ja vastausten laatu. Kerää tiimiltäsi kokemuksia ja palautetta siitä, miten tekoäly on sujuvoittanut arkea.
+  * **Täsmämateriaalit:** 
+    * [Euroopan tietosuojaneuvoston ohjeet anonymisoinnista ja tiedonharavoinnista](https://tietosuoja.fi/-/euroopan-tietosuojaneuvosto-julkaisi-ohjeet-anonymisoinnista-ja-tiedonharavoinnista)
+    * [Millaiset kunnan tehtävät luokitellaan suuririskisiksi? (Kuntaliitto UKK)](https://www.kuntaliitto.fi/ukk/millaiset-kunnan-tehtavat-ja-palvelut-luokitellaan-tekoalyn-yhteydessa-suuririskisiksi)
+* **Polku B: Edistyneet (Elinkaaren hallinta, analytiikka ja sääntely)**
+  * **Tehtävä:** Seuraa tiimiagenttien käyttöanalytiikkaa, arvioi tietoturva- ja sääntelyvaatimuksia (*EU AI Act*) ja koosta yksiköiden kokemukset sekä säästetyt työtunnit loppuvuoden raportointia varten.
+  * **Täsmämateriaalit:** 
+    * [Design a Governance and Security Strategy for Agents in Copilot Studio (Microsoft Learn)](https://learn.microsoft.com/en-us/training/modules/design-governance-security-strategy-copilot-studio/)
+    * [Copilot Studio Security and Governance -dokumentaatio (Microsoft Learn)](https://learn.microsoft.com/en-us/microsoft-copilot-studio/security-and-governance)
+    * [EU AI Act -opas ja vaatimukset (Modulos)](https://docs.modulos.ai/frameworks/eu-ai-act)
+    * [Tekoälyn vastuullinen hyödyntäminen – riskienhallinta ja tarkistuslista (Suomi.fi)](https://kehittajille.suomi.fi/oppaat/vastuullinen-tekoaly)
 
----------------------------------------------------------
-## kesäkuu - Kevään demopäivä ja sisäinen viestintäkampanja, laajempi strateginen jory-esittely
-Järjestetään koko organisaatiolle avoin esittelytilaisuus, jossa AI-lähettiläät esittelevät kevään aikana syntyneitä agentteja. Kootaan parhaat käyttötapaukset intranetiin ennen kesälomia. Pidetään laajempi strateginen katsaus joryssä. Arvioidaan toteutuneiden agenttien hyödyt (esim. säästetty työaika), tarkistetaan budjetti ja priorisoidaan seuraavan puolivuotiskauden kehityskohteet.
+---
 
-### Materiaalia oppimista tukemaan:
-#### Maksuttomat
-Copilot ja agentit - edistyneempi käyttö
+## Marraskuu – Vuoden koonti ja AI-tekojen palkitseminen
+**Yhteinen tavoite:** Kokoamme yhteen vuoden aikana syntyneitä oivalluksia ja ratkaisuja, palkitsemme vuoden AI-teot ja julkaisemme lähettiläiden onnistumistarinat koko organisaatiolle.
 
-Tietosuoja ja AI
-[Tekoälyn vastuullinen hyödyntäminen](https://kehittajille.suomi.fi/oppaat/vastuullinen-tekoaly)
+* **Polku A: Vasta-alkajat (Oman oppimismatkan ja vinkkien jakaminen)**
+  * **Tehtävä:** Jaa oma onnistumistarinasi tai arjen oivalluksesi vuoden koontitapahtumassa tai intranetissä – pienikin työajan säästö on arvokas esimerkki muille.
+  * **Täsmämateriaalit:** 
+* **Polku B: Edistyneet (Vaikuttavimpien ratkaisujen esittely)**
+  * **Tehtävä:** Esittele yksikkösi merkittävimmät agenttiratkaisut ja niiden mitatut hyödyt koontitapahtumassa. Ehdota vuoden AI-tekoja palkittavaksi.
+  * **Täsmämateriaalit:** 
+    * [Copilot controls measurement and reporting – hyötyjen mittaaminen (Microsoft Learn)](https://learn.microsoft.com/en-us/copilot/implement/copilot-controls-measurement-reporting)
 
-[Ota Copilot haltuun - Kaupungin omien keväällä 2026 ja vuonna 2025 pidettyjen Copilot-koulutusten tallenteet](https://tampereenseutu.sharepoint.com/sites/KLAAjankohtaista/SitePages/Ota-Copilot-haltuun-%E2%80%93-koulutuksia-ja-tallenteita-silloin%2C-kun-sinulle-sopii!.aspx)
-[Kangasalan maksuttomia koulutuspalveluja - Intra](https://tampereenseutu.sharepoint.com/sites/KLAHenkilostoasiat/SitePages/Maksuttomia-koulutuspalveluja.aspx)
+---
 
+## Joulukuu – Johtoryhmän laajempi vuosikatsaus ja katse tulevaan
+**Yhteinen tavoite:** Esittelemme johtoryhmälle koko vuoden koonnin, arvioidut hyödyt sekä suunnitelman AI-lähettilästoiminnan ja tekoälytiekartan seuraavalle vuodelle.
 
-Suositellut lisämateriaalit: agenttien hallinta ja jakaminen
-[Microsoft 365 Agents Checklist (Microsoft Learn)](https://learn.microsoft.com/en-us/microsoft-365/copilot/agent-essentials/m365-agents-checklist)
-[Implement a zoned governance strategy – Copilot Studio (Microsoft Learn)](https://learn.microsoft.com/en-us/microsoft-copilot-studio/guidance/sec-gov-phase2)
-[Agent Registry – organisaation agenttien hallinta (Microsoft Learn)](https://learn.microsoft.com/en-us/microsoft-365/admin/manage/agent-registry)
+* **Polku A: Vasta-alkajat (Palaute ja toiveet ensi vuodelle)**
+  * **Tehtävä:** Anna palautetta kuluneesta lähettiläsvuodesta ja kerro, millaista tukea tai koulutusta kaipaat jatkossa oman osaamisesi syventämiseen.
+  * **Täsmämateriaalit:** 
+    * [Näin otat tekoälyn puheeksi organisaatiossasi – yhteenveto (DVV & Kela)](https://dvv.fi/asiantuntijatyon-muutos-tekoalyn-aikana)
 
-#### Maksulliset
-Lisätään myöhemmin...
+* **Polku B: Edistyneet (Strateginen arviointi ja seuraavan vuoden tiekartta)**
+  * **Tehtävä:** Jory-katsauksen materiaalien viimeistelyyn ja tee ehdotus siitä, miten AI-lähettilästoimintaa ja edistyneempiä ratkaisuja kehitetään seuraavana vuonna.
+  * **Täsmämateriaalit:** 
+    * [Maximizing business value & ROI with Microsoft 365 Copilot (Microsoft Adoption)](https://adoption.microsoft.com/en-us/customer-hub/driving-business-value-with-microsoft-365-copilot/session-3/)
+    * [Julkisen hallinnon tekoälymuutos 2036 – visiotyö ja tiekartta](https://www.tekoalymuutos.fi/)
 
+---
 
----------------------------------------------------------
-Syyskausi: Syventävät taidot, hallinta ja verkostoituminen (elo–joulu)
-## elokuu- Kertaus, kehotemuotoilu (Prompt Engineering) ja syksyn viestintäsuunnitelma
-Yksiköt päivittävät mahdollisesti uusia tarpeita tiekartalle.
-
-### Materiaalia oppimista tukemaan:
-#### Maksuttomat
-Lisätään myöhemmin...
-
-#### Maksulliset
-Lisätään myöhemmin...
-
----------------------------------------------------------
-## syyskuu- Kuntakentän benchmark II
-Tutustutaan muiden kaupunkien edistyneempiin toteutuksiin, kuten verkkosivujen asiakaspalveluagentteihin ja rajapintaintegraatioihin.
-
-### Materiaalia oppimista tukemaan:
-#### Maksuttomat
-Lisätään myöhemmin...
-
-#### Maksulliset
-Lisätään myöhemmin...
-
----------------------------------------------------------
-## lokakuu- - Hallintamalli (Governance), analytiikka ja laadunvalvonta
-Keskitytään agenttien elinkaaren hallintaan, tietoturvaan ja käytön seurantaan. AI-lähettiläät keräävät palautetta loppukäyttäjiltä agenttien jatkokehitystä varten. AI-lähettiläät kokoavat yksiköiden kokemukset ja hyötyarviot loppuvuoden raportointia varten
-
-### Materiaalia oppimista tukemaan:
-#### Maksuttomat
-Lisätään myöhemmin...
-
-#### Maksulliset
-Lisätään myöhemmin...
-
----------------------------------------------------------
-## marraskuu- Vuoden koonti
-Järjestetään tapahtuma, jossa palkitaan vuoden AI-teot ja julkaistaan lähettiläiden onnistumistarinat.
-
-### Materiaalia oppimista tukemaan:
-#### Maksuttomat
-Lisätään myöhemmin...
-
-#### Maksulliset
-Lisätään myöhemmin...
-
----------------------------------------------------------
-## joulukuu- joryn laajempi vuosikatsaus
-Joryssä esitellään koko vuoden koonti sekä katsotaan seuraavaa vuotta.
-
-### Materiaalia oppimista tukemaan:
-#### Maksuttomat
-Lisätään myöhemmin...
-
-#### Maksulliset
-Lisätään myöhemmin...
-
-## Kansallinen AI-kehitys - seuranta
-[Julkisen hallinnon tekoälymuutos](https://www.tekoalymuutos.fi/)
-[Euroopan tietosuojaneuvosto julkaisi ohjeet anonymisoinnista ja tiedonharavoinnista](https://tietosuoja.fi/-/euroopan-tietosuojaneuvosto-julkaisi-ohjeet-anonymisoinnista-ja-tiedonharavoinnista)
-[Asiantuntijatyön muutos tekoälyn aikana - DVV](https://dvv.fi/asiantuntijatyon-muutos-tekoalyn-aikana)
-[Sujuva Suomi -keskustelu 12.11.2026 klo 14–15.30: Tekoäly on kaikkialla – onko tekoälylukutaitoa?](https://dvv.fi/-/sujuva-suomi-keskustelu-11-12-2026-onko-tekoalylukutaitoa)
-[Tekoälyn vastuullinen hyödyntäminen](https://kehittajille.suomi.fi/oppaat/vastuullinen-tekoaly)
-
-## Kansainväliset
-[EU AI Act](https://docs.modulos.ai/frameworks/eu-ai-act)
-[OpenAi oppaat](https://openai.com/fi-FI/business/learn/?tab=guides)
-[Claude Academy](https://academy.claude.com/)
-[Gemini Academy](https://grow.google/intl/en_my/gemini-academy/)
-
-## Viestintä
-Kuukauden AI-teko: Nostetaan kuukauden päätteeksi intranetissä esiin yksi lähettilään rakentama agentti tai oivallus lyhyen videon tai haastattelun muodossa
-
-Verkostoituminen: Kuntaliitto, DigiFinland, muiden kaupunkien digikehittäjät
+## 📢 Viestintä ja verkostoituminen (Koko syksyn ajan)
+* **Kuukauden AI-teko:** Nostetaan kuukauden päätteeksi intranetissä esiin yksi lähettilään rakentama agentti tai oivallus lyhyen videon tai haastattelun muodossa.
+* **Verkostoituminen:** Tehdään aktiivista yhteistyötä [Kuntaliiton](https://www.kuntaliitto.fi/kuntajohtaminen-ja-digitalisaatio/tekoaly), [DigiFinlandin](https://digifinland.fi/) ja muiden kaupunkien digikehittäjien kanssa.

@@ -52,7 +52,8 @@
       (needsLogin(url) ? '<span class="badge-login" title="Vaatii Kangasalan tunnukset">vaatii kirjautumisen</span>' : "");
   }
 
-  // Muuttaa rivit listoiksi: linkki → li, "- teksti" → aliviite, muu teksti → otsikko (tai kappale).
+  // Muuttaa rivit listoiksi: linkki tai "* teksti" → li, "- teksti" → aliviite,
+  // "### Otsikko" → väliotsikko, muu teksti → otsikko (tai kappale).
   function renderLines(lines, plainAsHeading) {
     let html = "", open = false;
     const close = () => { if (open) { html += "</ul>"; open = false; } };
@@ -60,54 +61,89 @@
     lines.forEach((raw) => {
       const line = raw.trim();
       if (!line) return;
-      const m = line.match(LINK_RE);
+      const h = line.match(/^#{3,}\s+(.*)$/);
+      if (h) { close(); html += "<h4>" + inline(h[1]) + "</h4>"; return; }
+      const body = line.replace(/^[-*]\s+/, "");
+      const m = body.match(LINK_RE);
       if (m) { ensure(); html += "<li>" + linkHtml(m[1], m[2]) + "</li>"; return; }
-      if (/^[-*]\s+/.test(line)) { ensure(); html += '<li class="sub">' + inline(line.replace(/^[-*]\s+/, "")) + "</li>"; return; }
+      if (/^-\s+/.test(line)) { ensure(); html += '<li class="sub">' + inline(body) + "</li>"; return; }
+      if (/^\*\s+/.test(line)) { ensure(); html += "<li>" + inline(body) + "</li>"; return; }
       close();
       if (/^lisätään myöhemmin/i.test(line)) html += '<p class="muted">Lisätään myöhemmin.</p>';
+      else if (/^\*[^*].*\*$/.test(line)) html += '<p class="intro">' + inline(line) + "</p>";
       else html += plainAsHeading ? "<h5>" + inline(line) + "</h5>" : "<p>" + inline(line) + "</p>";
     });
     close();
     return html;
   }
 
-  // Tekstin sisäiset linkit [a](b)
+  // **lihava** ja *kursiivi* (teksti on jo escapattu)
+  function fmt(s) {
+    return esc(s)
+      .replace(/\*\*([^*]+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?![*\w])/g, "$1<em>$2</em>");
+  }
+
+  // Tekstin sisäiset linkit [a](b) ja muotoilut
   function inline(t) {
     let out = "", last = 0;
     const re = /\[([^\]]+)\]\(\s*([^)\s]+)\s*\)/g;
     let m;
     while ((m = re.exec(t))) {
-      out += esc(t.slice(last, m.index)) + linkHtml(m[1], m[2]);
+      out += fmt(t.slice(last, m.index)) + linkHtml(m[1], m[2]);
       last = re.lastIndex;
     }
-    return out + esc(t.slice(last));
+    return out + fmt(t.slice(last));
   }
 
   /* ---------- Kuukausiohjelma ---------- */
   function parseProgram(md) {
     const lines = md.replace(/<!--[\s\S]*?-->/g, "").split(/\r?\n/);
     const months = {}, extras = [];
-    let cur = null, curExtra = null, season = null;
+    let cur = null, curExtra = null, season = null, curPath = null;
     const monthRe = new RegExp("^##\\s+(" + MONTHS.join("|") + ")[\\s\\-–:]*(.*)$", "i");
+    // "**Otsikko:** teksti" tai "* **Otsikko:** teksti"
+    const field = (t, name) => t.match(new RegExp("^(?:[-*]\\s+)?\\*\\*\\s*" + name + "\\s*:?\\s*\\*\\*\\s*:?\\s*(.*)$", "i"));
 
     lines.forEach((line) => {
       const t = line.trim();
       if (/^-{3,}$/.test(t)) return;
-      if (/^(kevätkausi|syyskausi)/i.test(t)) { season = t; cur = null; curExtra = null; return; }
+      if (/^#\s+/.test(t)) {                       // pääotsikko, esim. "# … Kevätkausi (tammi–kesä)"
+        const sm = t.match(/(kevätkausi|syyskausi).*$/i);
+        if (sm) season = sm[0].trim();
+        cur = null; curExtra = null; curPath = null; return;
+      }
+      if (/^(kevätkausi|syyskausi)/i.test(t)) { season = t; cur = null; curExtra = null; curPath = null; return; }
       const mm = t.match(monthRe);
       if (mm) {
         const idx = MONTHS.indexOf(mm[1].toLowerCase());
-        cur = { idx, title: mm[2].trim(), season, desc: [], free: [], paid: [], meet: null, status: null, part: "desc" };
-        months[idx] = cur; curExtra = null; return;
+        cur = { idx, title: mm[2].trim(), season, desc: [], free: [], paid: [], goal: "", paths: [], meet: null, status: null, part: "desc" };
+        months[idx] = cur; curExtra = null; curPath = null; return;
       }
       if (/^##\s+/.test(t) && !/^###/.test(t)) {
-        cur = null; curExtra = { title: t.replace(/^##\s+/, ""), lines: [] }; extras.push(curExtra); return;
+        cur = null; curPath = null; curExtra = { title: t.replace(/^##\s+/, ""), lines: [] }; extras.push(curExtra); return;
       }
       if (curExtra) { curExtra.lines.push(t); return; }
       if (!cur) return;
       let m;
       if ((m = t.match(/^tapaaminen\s*:\s*(.+)$/i))) { cur.meet = m[1]; return; }
       if ((m = t.match(/^tila\s*:\s*(.+)$/i))) { cur.status = norm(m[1]); return; }
+      if ((m = field(t, "yhteinen tavoite"))) { cur.goal = m[1].trim(); cur.part = "goal"; curPath = null; return; }
+      if ((m = t.match(/^(?:[-*]\s+)?\*\*\s*polku\s+([ab])\s*[:\-–]?\s*(.*?)\s*\*\*\s*(.*)$/i))) {
+        const full = (m[2] + " " + m[3]).trim();
+        const fm = full.match(/^(.*?)\s*\(([^)]*)\)\s*$/);
+        curPath = { key: m[1].toUpperCase(), name: fm ? fm[1] : full, focus: fm ? fm[2] : "", task: "", materials: [], sub: "task" };
+        cur.paths.push(curPath); cur.part = "path"; return;
+      }
+      if (curPath) {
+        if ((m = field(t, "tehtävä"))) { curPath.task = m[1].trim(); curPath.sub = "task"; return; }
+        if ((m = field(t, "täsmämateriaalit"))) { curPath.sub = "mat"; if (m[1].trim()) curPath.materials.push(m[1].trim()); return; }
+        if (!t) return;
+        if (curPath.sub === "mat") curPath.materials.push(t);
+        else curPath.task = (curPath.task + " " + t).trim();
+        return;
+      }
+      if (cur.part === "goal") { if (t) cur.goal += " " + t; return; }
       if (/^###\s+/.test(t) && !/^####/.test(t)) { cur.part = "free"; return; }
       if (/^####\s+maksuttomat/i.test(t)) { cur.part = "free"; return; }
       if (/^####\s+maksulliset/i.test(t)) { cur.part = "paid"; return; }
@@ -153,9 +189,27 @@
     ];
     // käytä tiedoston kausiotsikoita, jos ne löytyvät
     Object.values(data.months).forEach((mo) => {
-      if (mo.season) { const s = mo.idx < 6 ? seasons[0] : seasons[1]; s.name = mo.season.replace(/\s*\(.*\)\s*$/, ""); }
+      if (mo.season) {
+        const s = mo.idx < 6 ? seasons[0] : seasons[1];
+        // "Kevätkausi (tammi–kesä)" säilyy, vanha pitkä muoto ilman sulkeita
+        s.name = /:/.test(mo.season) ? mo.season.replace(/\s*\(.*\)\s*$/, "") : mo.season;
+      }
     });
+    const hasPaths = Object.values(data.months).some((mo) => mo.paths && mo.paths.length);
+    const PATHS = { all: "Molemmat polut", A: "Polku A: Vasta-alkajat", B: "Polku B: Edistyneet" };
+    const hashParts = decodeURIComponent(location.hash.replace(/^#kk-/, "")).split("&");
+    const hashPath = (hashParts.find((p) => /^polku=/i.test(p)) || "").replace(/^polku=/i, "").toUpperCase();
+    let pathSel = "all";
+    try { const v = localStorage.getItem("ail-polku"); if (PATHS[v]) pathSel = v; } catch (e) { /* ei tallennusta */ }
+    if (PATHS[hashPath]) pathSel = hashPath;
+    let current = 0;
+
     let html = "";
+    if (hasPaths) {
+      html += '<div class="path-pick"><div class="path-switch" role="group" aria-label="Näytettävä oppimispolku">' +
+        Object.keys(PATHS).map((k) => '<button type="button" data-path="' + k + '" aria-pressed="' + (k === pathSel) + '">' + esc(PATHS[k]) + "</button>").join("") +
+        '</div><p class="note">Valitse oma polkusi. <b>A</b> sopii, jos tekoäly on vielä uutta, <b>B</b>, jos käytät Copilotia jo sujuvasti. Voit vaihtaa polkua minkä tahansa kuukauden kohdalla.</p></div>';
+    }
     seasons.forEach((s) => {
       html += '<p class="season">' + esc(s.name) + '</p><div class="cal">';
       for (let i = s.from; i <= s.to; i++) {
@@ -178,12 +232,34 @@
     el.innerHTML = html;
 
     el.addEventListener("click", (e) => {
+      const p = e.target.closest(".path-switch button");
+      if (p) {
+        pathSel = p.dataset.path;
+        el.querySelectorAll(".path-switch button").forEach((x) => x.setAttribute("aria-pressed", String(x === p)));
+        try { localStorage.setItem("ail-polku", pathSel); } catch (err) { /* ei tallennusta */ }
+        select(current, false);
+        return;
+      }
       const b = e.target.closest(".month");
       if (!b || b.disabled) return;
       select(+b.dataset.idx, true);
     });
 
+    function pathsHtml(mo) {
+      let shown = mo.paths.filter((p) => pathSel === "all" || p.key === pathSel);
+      if (!shown.length) shown = mo.paths;
+      const later = '<p class="muted">Lisätään myöhemmin.</p>';
+      return '<div class="paths' + (shown.length === 1 ? " one" : "") + '">' + shown.map((p) =>
+        '<article class="path-card ' + p.key.toLowerCase() + '">' +
+        '<p class="path-key">Polku ' + esc(p.key) + "</p>" +
+        "<h4>" + esc(p.name) + "</h4>" +
+        (p.focus ? '<p class="path-focus">' + esc(p.focus) + "</p>" : "") +
+        '<div class="mat"><h5>Tehtävä</h5>' + (p.task ? "<p>" + inline(p.task) + "</p>" : later) +
+        "<h5>Täsmämateriaalit</h5>" + (renderLines(p.materials, false) || later) + "</div></article>").join("") + "</div>";
+    }
+
     function select(idx, scroll) {
+      current = idx;
       el.querySelectorAll(".month").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.idx === idx)));
       const mo = data.months[idx];
       const det = $("#month-detail");
@@ -192,8 +268,13 @@
       h += '<p style="font-weight:700;font-size:1.1rem">' + esc(mo ? mo.title : "Ohjelma täydentyy") + "</p>";
       h += '<div class="meta">' + (meet ? "<span>Ryhmän tapaaminen: " + esc(meet) + " (max 1 h, Teams / livenä)</span>" : "") +
         (JORY_MONTHS[idx] ? "<span>" + esc(JORY_MONTHS[idx]) + "</span>" : "") + "</div>";
-      if (mo) {
+      if (mo && mo.paths.length) {
         h += mo.desc.map((d) => "<p>" + inline(d) + "</p>").join("");
+        if (mo.goal) h += '<div class="goal"><h4>Yhteinen tavoite</h4><p>' + inline(mo.goal) + "</p></div>";
+        h += pathsHtml(mo);
+      } else if (mo) {
+        h += mo.desc.map((d) => "<p>" + inline(d) + "</p>").join("");
+        if (mo.goal) h += '<div class="goal"><h4>Yhteinen tavoite</h4><p>' + inline(mo.goal) + "</p></div>";
         h += '<div class="mat-cols"><div class="mat"><h4>Maksuttomat materiaalit</h4>' +
           (renderLines(mo.free, true) || '<p class="muted">Lisätään myöhemmin.</p>') + "</div>" +
           '<div class="mat"><h4>Maksulliset</h4>' + (renderLines(mo.paid, true) || '<p class="muted">Lisätään myöhemmin.</p>') + "</div></div>";
@@ -202,10 +283,12 @@
       }
       det.innerHTML = h;
       if (scroll) det.scrollIntoView({ behavior: "smooth", block: "start" });
-      try { history.replaceState(null, "", "#kk-" + MONTHS[idx]); } catch (e) { /* ei haittaa */ }
+      if (scroll || /^#kk-/.test(location.hash)) {
+        try { history.replaceState(null, "", "#kk-" + MONTHS[idx] + (pathSel !== "all" ? "&polku=" + pathSel.toLowerCase() : "")); } catch (e) { /* ei haittaa */ }
+      }
     }
 
-    const hash = decodeURIComponent(location.hash.replace("#kk-", ""));
+    const hash = hashParts[0];
     const now = new Date();
     let start = MONTHS.indexOf(hash);
     if (start < 0) start = now.getFullYear() === YEAR ? now.getMonth() : 0;
