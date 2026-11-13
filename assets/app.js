@@ -64,10 +64,13 @@
       const h = line.match(/^#{3,}\s+(.*)$/);
       if (h) { close(); html += "<h4>" + inline(h[1]) + "</h4>"; return; }
       const body = line.replace(/^[-*]\s+/, "");
+      // sisennetty luettelorivi: 2 välilyöntiä → sub, 4 → sub2
+      const ind = /^[-*]\s+/.test(line) ? raw.match(/^\s*/)[0].replace(/\t/g, "  ").length : 0;
+      const cls = ind >= 4 ? ' class="sub2"' : ind >= 2 ? ' class="sub"' : "";
       const m = body.match(LINK_RE);
-      if (m) { ensure(); html += "<li>" + linkHtml(m[1], m[2]) + "</li>"; return; }
-      if (/^-\s+/.test(line)) { ensure(); html += '<li class="sub">' + inline(body) + "</li>"; return; }
-      if (/^\*\s+/.test(line)) { ensure(); html += "<li>" + inline(body) + "</li>"; return; }
+      if (m) { ensure(); html += "<li" + cls + ">" + linkHtml(m[1], m[2]) + "</li>"; return; }
+      if (/^-\s+/.test(line)) { ensure(); html += '<li class="' + (ind >= 4 ? "sub2" : "sub") + '">' + inline(body) + "</li>"; return; }
+      if (/^\*\s+/.test(line)) { ensure(); html += "<li" + cls + ">" + inline(body) + "</li>"; return; }
       close();
       if (/^lisätään myöhemmin/i.test(line)) html += '<p class="muted">Lisätään myöhemmin.</p>';
       else if (/^\*[^*].*\*$/.test(line)) html += '<p class="intro">' + inline(line) + "</p>";
@@ -123,7 +126,7 @@
       if (/^##\s+/.test(t) && !/^###/.test(t)) {
         cur = null; curPath = null; curExtra = { title: t.replace(/^##\s+/, ""), lines: [] }; extras.push(curExtra); return;
       }
-      if (curExtra) { curExtra.lines.push(t); return; }
+      if (curExtra) { curExtra.lines.push(line.replace(/\s+$/, "")); return; }   // sisennys talteen (alibullet)
       if (!cur) return;
       let m;
       if ((m = t.match(/^tapaaminen\s*:\s*(.+)$/i))) { cur.meet = m[1]; return; }
@@ -210,6 +213,7 @@
         Object.keys(PATHS).map((k) => '<button type="button" data-path="' + k + '" aria-pressed="' + (k === pathSel) + '">' + esc(PATHS[k]) + "</button>").join("") +
         '</div><p class="note">Valitse oma polkusi. <b>A</b> sopii, jos tekoäly on vielä uutta, <b>B</b>, jos käytät Copilotia jo sujuvasti. Voit vaihtaa polkua minkä tahansa kuukauden kohdalla.</p></div>';
     }
+    html += '<div id="month-detail" class="month-detail" aria-live="polite"></div>';
     seasons.forEach((s) => {
       html += '<p class="season">' + esc(s.name) + '</p><div class="cal">';
       for (let i = s.from; i <= s.to; i++) {
@@ -228,7 +232,6 @@
       }
       html += "</div>";
     });
-    html += '<div id="month-detail" class="month-detail" aria-live="polite"></div>';
     el.innerHTML = html;
 
     el.addEventListener("click", (e) => {

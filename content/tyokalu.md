@@ -2,6 +2,8 @@
 
 Työkalulla organisaation eri yksiköt voivat arvioida tekoälyn käyttötapauksia yhtenäisesti ennen kuin ne viedään AI-tiekarttaan. Arviointi vie noin 15 minuuttia.
 
+**[▶ Katso opetusvideo (3 min)](assets/video/arviointityokalu-v2.mp4)**
+
 **Näin arvioit – viisi vaihetta**
 
 1. **Ohjeet:** lue tämä ohje (tämä vaihe).

@@ -33,7 +33,16 @@ Muotoiluohje (sivu lukee tämän tiedoston sellaisenaan):
 
 * **Tekoälyn perusteet:** [Elements of AI -verkkokurssi](https://elementsofai.com)
 * **Vastuullisuus ja tietoturva:** [Tekoälyn vastuullinen hyödyntäminen (Suomi.fi)](https://kehittajille.suomi.fi/oppaat/vastuullinen-tekoaly) & Kaupungin tietosuojalinjaukset
-* **Kaupungin omat koulutukset:** [Ota Copilot haltuun -tallenteet (Intra)](https://tampereenseutu.sharepoint.com/sites/KLAAjankohtaista/SitePages/Ota-Copilot-haltuun-%E2%80%93-koulutuksia-ja-tallenteita-silloin%2C-kun-sinulle-sopii!.aspx) & [Kangasalan maksuttomat koulutuspalvelut (Intra)](https://tampereenseutu.sharepoint.com/sites/KLAHenkilostoasiat/SitePages/Maksuttomia-koulutuspalveluja.aspx)
+* **Kaupungin omat koulutukset:**
+  * [Ota Copilot haltuun -tallenteet (Intra)](https://tampereenseutu.sharepoint.com/sites/KLAAjankohtaista/SitePages/Ota-Copilot-haltuun-%E2%80%93-koulutuksia-ja-tallenteita-silloin%2C-kun-sinulle-sopii!.aspx)
+    * Microsoft 365 Copilot 1 – perusteet
+    * Microsoft 365 Copilot 2 – työelämän tekoäly
+    * Microsoft 365 Copilot 3 – työkäytön jatkokurssi
+    * Microsoft 365 Copilot 4 – tehokäyttö agenteilla
+  * [Kangasalan maksuttomat koulutuspalvelut (Intra)](https://tampereenseutu.sharepoint.com/sites/KLAHenkilostoasiat/SitePages/Maksuttomia-koulutuspalveluja.aspx)
+    * Eduhouse – Tekoälyn lainsäädäntö
+    * Eduhouse – Tekoälyn perusteet
+    * Eduhouse – Microsoft 365 Copilot
 * **Microsoftin oppimispolut:** [Selaa Microsoft Learn -tekoälykoulutuksia](https://learn.microsoft.com/fi-fi/training/browse/)
 
 ---

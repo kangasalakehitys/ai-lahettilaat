@@ -735,7 +735,7 @@
       if (!el) return;
       const put = (html) => {
         el.innerHTML = html;
-        el.querySelectorAll("a[href^='http']").forEach((a) => { a.target = "_blank"; a.rel = "noopener"; });
+        el.querySelectorAll("a[href]:not([href^='#'])").forEach((a) => { a.target = "_blank"; a.rel = "noopener"; });
       };
       if (guideHtml != null) { put(guideHtml); return; }
       if (!o.guideUrl) { put('<p>Täytä arviointi vaihe kerrallaan. Tähdellä (*) merkityt tiedot ovat pakollisia.</p>'); return; }

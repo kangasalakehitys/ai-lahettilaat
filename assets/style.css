@@ -134,7 +134,7 @@ section.block.soft { background: var(--soft); }
 .chip.jory { background: #fff1cf; color: #6b4a00; }
 
 .month-detail {
-  margin-top: 20px; background: var(--white); border: 1px solid var(--line);
+  margin: 20px 0 8px; background: var(--white); border: 1px solid var(--line);
   border-radius: var(--radius); padding: clamp(18px, 4vw, 32px);
 }
 .month-detail h3 { font-size: 1.4rem; color: var(--red); }
@@ -146,6 +146,8 @@ section.block.soft { background: var(--soft); }
 .mat ul { margin: 0; padding-left: 1.1em; }
 .mat li { margin: 4px 0; overflow-wrap: anywhere; }
 .mat li.sub { list-style: circle; color: var(--muted); }
+li.sub { list-style: circle; margin-left: 1.2em; }
+li.sub2 { list-style: square; margin-left: 2.4em; }
 .badge-login { font-size: .72rem; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 0 6px; margin-left: 6px; white-space: nowrap; }
 
 /* Oppimispolut A/B */
