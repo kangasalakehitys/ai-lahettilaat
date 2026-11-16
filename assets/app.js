@@ -140,7 +140,7 @@
       }
       if (curPath) {
         if ((m = field(t, "tehtävä"))) { curPath.task = m[1].trim(); curPath.sub = "task"; return; }
-        if ((m = field(t, "täsmämateriaalit"))) { curPath.sub = "mat"; if (m[1].trim()) curPath.materials.push(m[1].trim()); return; }
+        if ((m = field(t, "opintokori") || field(t, "täsmämateriaalit"))) { curPath.sub = "mat"; if (m[1].trim()) curPath.materials.push(m[1].trim()); return; }
         if (!t) return;
         if (curPath.sub === "mat") curPath.materials.push(t);
         else curPath.task = (curPath.task + " " + t).trim();
@@ -258,7 +258,7 @@
         "<h4>" + esc(p.name) + "</h4>" +
         (p.focus ? '<p class="path-focus">' + esc(p.focus) + "</p>" : "") +
         '<div class="mat"><h5>Tehtävä</h5>' + (p.task ? "<p>" + inline(p.task) + "</p>" : later) +
-        "<h5>Täsmämateriaalit</h5>" + (renderLines(p.materials, false) || later) + "</div></article>").join("") + "</div>";
+        "<h5>Opintokori</h5>" + (renderLines(p.materials, false) || later) + "</div></article>").join("") + "</div>";
     }
 
     function select(idx, scroll) {
