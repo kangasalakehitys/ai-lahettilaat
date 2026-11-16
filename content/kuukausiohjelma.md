@@ -144,6 +144,7 @@ Muotoiluohje (sivu lukee tämän tiedoston sellaisenaan):
 # AI-lähettiläiden kuukausiohjelma: Syyskausi (elo–joulu)
 
 ## Elokuu – Kertaus, kehotemuotoilu ja syksyn viestintäsuunnitelma
+Tapaaminen: to 19.8.2027
 **Yhteinen tavoite:** Palautamme kevään opit mieleen kesän jälkeen, päivitämme yksiköiden uudet tarpeet tiekartalle ja käynnistämme syksyn viestinnän.
 
 * **Polku A: Vasta-alkajat (Rutiinien kertaaminen ja kehoteopit)**
