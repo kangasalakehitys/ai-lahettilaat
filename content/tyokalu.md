@@ -7,7 +7,7 @@ Työkalulla organisaation eri yksiköt voivat arvioida tekoälyn käyttötapauks
 **Näin arvioit – viisi vaihetta**
 
 1. **Ohjeet:** lue tämä ohje (tämä vaihe).
-2. **Perustiedot:** nimeä käyttötapaus konkreettisesti, valitse palvelukeskus/osasto ja yksikkö (tai kirjoita oma nimi), kirjaa omistaja, kuvaa ongelma ja valitse tietosuojataso. Tähdellä (*) merkityt tiedot ovat pakollisia.
+2. **Perustiedot:** nimeä käyttötapaus konkreettisesti, kirjoita osasto ja yksikkö, kirjaa omistaja, kuvaa ongelma ja valitse tietosuojataso. Tähdellä (*) merkityt tiedot ovat pakollisia.
 3. **Arviointi:** valitse 14 kriteerille arvo 1–5 kolmesta näkökulmasta: hyödyt toiminnassa, toteutettavuus ja kustannukset sekä riskit ja vastuullisuus. Merkitse ★:llä enintään kolme tärkeintä kriteeriä.
 4. **Hyöty–kustannus (valinnainen):** arvioi säästetty työaika ja kustannukset. Voit korjata myös työtunnin arvon.
 5. **Tulos ja tallennus:** tarkista tiedot, katso pisteet, nelikenttä ja suositus, ja tallenna.

@@ -80,13 +80,13 @@ Työkalu on oma komponenttinsa kansiossa `assets/ai-arviointi/` (`ai-arviointi.j
 - **Parametrit** (kriteerit, painot, nelikentän rajat, riskivähennykset, työtunnin arvo) ladataan ja tuodaan omana JSON-tiedostonaan. Kriteerejä voi olla enintään 15. Uuden kriteerin saa lisäämällä tiedoston `criteria`-listaan rivin, jossa on `id`, `group` (`hyoty`, `toteutus` tai `riski`), `name`, `help`, `lo`, `hi` ja `weight` (0–3).
 - *Yhteenveto*-välilehdelle voi tuoda useita JSON-tiedostoja kerralla (esim. kaikkien yksiköiden tulokset). Se näyttää kaikki käyttötapaukset nelikentässä ja prioriteettijärjestyksessä kokonaispisteineen, ja enintään 4 valittua tarkemmin.
 - *Vertailu ja simulointi* -välilehdellä painotuksia voi kokeilla ja tallentaa skenaarioiksi (piilotettu Kangasalan sivulla).
-- `mount`-asetuksilla voi vaihtaa mm. palvelukeskukset/osastot ja yksiköt (`centers`), tilat (`statuses`), tyypit ja niiden ohjetekstit (`types`, `typeInfo`) ja oletusparametrit (`params`).
+- `mount`-asetuksilla voi vaihtaa mm. tilat (`statuses`), tyypit ja niiden ohjetekstit (`types`, `typeInfo`) ja oletusparametrit (`params`).
 - `hidden` piilottaa osia: `"status"` (Tila), `"jory"` (Jory-huomio), `"roadmapBlock"` (*Kopioi tiekarttalohkona*), `"vertailu"` (*Vertailu ja simulointi* -välilehti) sekä latausmuodot `"pdf"`, `"csv"`, `"pptx"` ja `"json"`. Kangasalan sivulla (`tyokalu.html`) piilossa ovat tiekarttalohko, Vertailu ja simulointi sekä PDF- ja CSV-lataus.
 - Tilojen ja tyyppien ohjetekstit (?-ponnahdusikkunat) ovat asetuksissa `statusInfo` ja `typeInfo`. Vaihepalkki pysyy näkyvissä vierittäessä sivun yläpalkin alla; etäisyyden voi säätää CSS-muuttujalla `--aia-sticky-top` (oletus 64px).
 - Arviointi etenee viidessä vaiheessa (stepper). 1. vaihe on Ohjeet: sen teksti luetaan tiedostosta `content/tyokalu.md` (asetus `guideUrl`), ja sivun yläosassa näkyy tiedoston otsikko.
 - Yhteenvedossa vertailuun voi valita enintään 30 käyttötapausta (oletuksena 10 parasta). Mukana on myös organisaation keskiarvo.
 - Työtunnin arvoa voi muuttaa vaiheessa 4 (Hyöty–kustannus); muutos koskee kaikkia arviointeja.
-- Pakolliset tiedot: nimi, palvelukeskus/osasto, yksikkö (jos palvelukeskuksella on yksiköitä), omistaja, ongelma ja tavoite, miten tekoäly auttaa sekä tietosuojataso. Palvelukeskukselle ja yksikölle voi valita *Muu* ja kirjoittaa oman nimen.
+- Pakolliset tiedot: nimi, osasto, yksikkö, omistaja, ongelma ja tavoite, miten tekoäly auttaa sekä tietosuojataso. Osasto ja yksikkö ovat vapaita tekstikenttiä.
 
 ## Esikatselu omalla koneella
 

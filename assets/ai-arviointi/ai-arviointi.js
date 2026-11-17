@@ -6,7 +6,7 @@
  *    <script src="ai-arviointi.js"></script>
  *    <script>AIArviointi.mount(document.getElementById("ai-arviointi"), { storageKey: "oma-sivu" });</script>
  *
- *  Asetukset (kaikki valinnaisia): storageKey, centers, statuses, types, typeInfo, hidden, params,
+ *  Asetukset (kaikki valinnaisia): storageKey, statuses, types, typeInfo, hidden, params,
  *  pptxUrl, font, org, title. hidden: ["status", "jory", "roadmapBlock"] piilottaa Tila- ja Jory-kentät
  *  sekä "Kopioi tiekarttalohkona" -painikkeen.
  *  Tiedot tallentuvat vain käyttäjän selaimeen. Jakaminen tapahtuu vientitiedostoilla (PDF, PPTX, CSV, JSON).
@@ -20,8 +20,7 @@
   const MAX_CRITERIA = 15;
   const MAX_SEL = 30;      // vertailuun valittavien enimmäismäärä
   const DEFAULT_SEL = 10;  // oletuksena valitaan 10 parasta
-  const OTHER = "__muu__";
-  const CENTER_LBL = "Palvelukeskus/Osasto";
+  const CENTER_LBL = "Osasto";
   // Vertailuvärit: kuusi brändiväriä, jokainen kierros läpinäkyvämpänä (30 sävyä).
   const SEL_BASE = ["#de232f", "#28336c", "#00adc5", "#fcb316", "#009651", "#e64925"];
   const SEL_ALPHA = [1, 0.7, 0.45, 0.25, 0.15];
@@ -34,12 +33,6 @@
   };
   const selText = (k) => (selBase(k) === "#fcb316" || selAlpha(k) <= 0.45 ? "#1d1d1f" : "#fff");
 
-  const DEFAULT_CENTERS = {
-    "Strateginen johto": ["Hallintopalvelut", "Talous- ja tietohallintopalvelut", "Konserni- ja tukipalvelut", "Kehittämispalvelut", "Henkilöstöpalvelut"],
-    "Sivistyskeskus": ["Varhaiskasvatus- ja esiopetuspalvelut", "Opetus- ja koulutuspalvelut", "Hyvinvointi- ja vapaa-aikapalvelut"],
-    "Tekninen keskus": ["Maankäyttö", "Rakentaminen", "Ympäristö- ja rakennusvalvonta", "Ateria- ja siivouspalvelut"],
-    "Kaupunki (yhteinen)": []
-  };
   const DEFAULT_STATUSES = [
     { label: "Ideat", c: "#00adc5" },
     { label: "Arvioinnissa", c: "#fcb316", dark: true },
@@ -175,7 +168,6 @@
   const fiNum = (v, dec) => Number(v).toLocaleString("fi-FI", { maximumFractionDigits: dec || 0 });
   const slug = (s) => norm(s).replace(/[åä]/g, "a").replace(/ö/g, "o").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "arviointi";
   const privacyOf = (k) => PRIVACY.find((p) => p.key === k);
-  const has = (obj, k) => Object.prototype.hasOwnProperty.call(obj, k);
   let mounts = 0;
 
   /* ---------- Parametrien tarkistus ---------- */
@@ -405,7 +397,6 @@
     if (!root) throw new Error("AIArviointi.mount: kohde-elementti puuttuu.");
     const o = Object.assign({
       storageKey: "ai-arviointi",
-      centers: DEFAULT_CENTERS,
       statuses: DEFAULT_STATUSES,
       types: DEFAULT_TYPES,
       typeInfo: DEFAULT_TYPE_INFO,
@@ -447,7 +438,7 @@
       yfilt: "", ystat: "", ysortKey: "rank", ysortDir: 1,
       sel: Array.isArray(db.get("sel", null)) ? db.get("sel", null) : null,
       sortKey: "rank", sortDir: 1, topN: 5, openOnly: true, cmpA: "current", cmpB: "sim",
-      ui: { centerOther: false, unitOther: false, showErrors: false, saveErr: "", saveWarn: "", lastSaved: null },
+      ui: { showErrors: false, saveErr: "", saveWarn: "", lastSaved: null },
       importTarget: ""
     };
     S.sim = clone(S.params);
@@ -463,7 +454,7 @@
     const saveParams = () => db.set("params", S.params);
     const saveScen = () => db.set("scenarios", S.scenarios);
     const isSaved = () => S.cases.some((c) => c.id === S.draft.id);
-    const centerNames = () => Array.from(new Set(Object.keys(o.centers).concat(S.cases.map((c) => c.center).filter(Boolean))));
+    const centerNames = () => Array.from(new Set(S.cases.map((c) => c.center.trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, "fi"));
 
     /* ---------- Runko ---------- */
     const TABS = [
@@ -563,33 +554,14 @@
 
     /* ---------- Arvioi: lomake ---------- */
     function initUi() {
-      const c = S.draft, u = S.ui;
-      u.centerOther = !!c.center && !has(o.centers, c.center);
-      const units = u.centerOther ? [] : (o.centers[c.center] || []);
-      u.unitOther = !u.centerOther && !!c.unit && units.indexOf(c.unit) < 0;
+      const u = S.ui;
       u.showErrors = false; u.saveErr = "";
     }
 
-    function unitRequired(c) {
-      const u = S.ui;
-      if (u.centerOther) return true;
-      if (!c.center) return true;
-      return (o.centers[c.center] || []).length > 0 || u.unitOther;
-    }
-
     function unitFieldHtml() {
-      const c = S.draft, u = S.ui, units = o.centers[c.center] || [];
-      const textIn = (hidden) => '<input type="text" class="aia-other" id="' + ID + '-unittext" data-f="unitText" data-req="unitText" maxlength="60" placeholder="Kirjoita yksikön nimi" value="' +
-        esc(u.unitOther || u.centerOther ? c.unit : "") + '"' + (hidden ? " hidden" : "") + ">";
-      let ctl, forId = ID + "-unit";
-      if (u.centerOther) { ctl = textIn(false); forId = ID + "-unittext"; }
-      else if (!c.center) ctl = '<select id="' + ID + '-unit" disabled><option>Valitse ensin ' + esc(CENTER_LBL.toLowerCase()) + "</option></select>";
-      else {
-        ctl = '<select id="' + ID + '-unit" data-f="unit" data-req="unit">' +
-          (units.length ? opts(units, u.unitOther ? null : c.unit, "Valitse yksikkö") : '<option value="">Kaikille yhteinen</option>') +
-          '<option value="' + OTHER + '"' + (u.unitOther ? " selected" : "") + ">Muu, kirjoita nimi…</option></select>" + textIn(!u.unitOther);
-      }
-      return field("Yksikkö", ctl, "", forId, unitRequired(c));
+      const c = S.draft;
+      return field("Yksikkö", '<input type="text" id="' + ID + '-unit" data-f="unit" data-req="unit" maxlength="80" aria-required="true" autocomplete="off" placeholder="esim. Rakennusvalvonta" value="' +
+        esc(c.unit) + '">', "", ID + "-unit", true);
     }
 
     function starHelp(P) {
@@ -642,11 +614,8 @@
       h += field("Käyttötapauksen nimi", '<input type="text" id="' + ID + '-name" data-f="name" data-req="name" maxlength="140" aria-required="true" value="' + esc(c.name) + '" autocomplete="off">',
         "Nimeä mahdollisimman konkreettisesti.", ID + "-name", true);
       h += '<div class="aia-row2">' +
-        field(CENTER_LBL, '<select id="' + ID + '-center" data-f="center" data-req="center" aria-required="true">' +
-          opts(Object.keys(o.centers), u.centerOther ? null : c.center, "Valitse") +
-          '<option value="' + OTHER + '"' + (u.centerOther ? " selected" : "") + ">Muu, kirjoita nimi…</option></select>" +
-          '<input type="text" class="aia-other" id="' + ID + '-centertext" data-f="centerText" data-req="centerText" maxlength="60" placeholder="Kirjoita nimi" aria-label="' + CENTER_LBL + ', oma nimi" value="' +
-          esc(u.centerOther ? c.center : "") + '"' + (u.centerOther ? "" : " hidden") + ">", "", ID + "-center", true) +
+        field(CENTER_LBL, '<input type="text" id="' + ID + '-center" data-f="center" data-req="center" maxlength="80" aria-required="true" autocomplete="off" placeholder="esim. Tekninen keskus" value="' +
+          esc(c.center) + '">', "", ID + "-center", true) +
         '<div data-unitwrap>' + unitFieldHtml() + "</div></div>";
       h += '<div class="aia-row2">' +
         field("Omistaja (henkilö tai tiimi)", '<input type="text" id="' + ID + '-owner" data-f="owner" data-req="owner" aria-required="true" maxlength="120" value="' + esc(c.owner) + '" placeholder="esim. nimi tai Rakennusvalvonnan tiimi">', "", ID + "-owner", true) +
@@ -836,10 +805,10 @@
     }
 
     function checkRequired() {
-      const c = S.draft, u = S.ui, m = [];
+      const c = S.draft, m = [];
       if (!c.name.trim()) m.push(["name", "Käyttötapauksen nimi"]);
-      if (!c.center.trim()) m.push([u.centerOther ? "centerText" : "center", CENTER_LBL]);
-      else if (unitRequired(c) && !c.unit.trim()) m.push([u.centerOther || u.unitOther ? "unitText" : "unit", "Yksikkö"]);
+      if (!c.center.trim()) m.push(["center", CENTER_LBL]);
+      if (!c.unit.trim()) m.push(["unit", "Yksikkö"]);
       if (!c.owner.trim()) m.push(["owner", "Omistaja"]);
       if (!c.problem.trim()) m.push(["problem", "Ongelma ja tavoite"]);
       if (!c.aiHelp.trim()) m.push(["aiHelp", "Miten tekoäly auttaa"]);
@@ -1657,8 +1626,6 @@
       const t = ev.target;
       if (t.dataset.score != null) { setScore(+t.dataset.score, +t.value); return; }
       const f = t.dataset.f;
-      if (f === "centerText") { S.draft.center = t.value; touch(); return; }
-      if (f === "unitText") { S.draft.unit = t.value; touch(); return; }
       if (f && (t.tagName === "TEXTAREA" || t.type === "text" || t.type === "number")) {
         S.draft[f] = t.type === "number" ? (t.value === "" ? "" : Math.max(0, Number(t.value))) : t.value;
         if (t.tagName === "TEXTAREA") { const cn = panel("arvioi").querySelector('[data-counter="' + f + '"]'); if (cn) cn.textContent = t.value.length + " / 200"; }
@@ -1693,27 +1660,13 @@
         updateResult(); return;
       }
       if (t.dataset.f) {
-        const k = t.dataset.f, pnl = panel("arvioi"), u = S.ui;
+        const k = t.dataset.f, pnl = panel("arvioi");
         if (k === "jory") S.draft.jory = t.checked;
         else if (k === "privacy") {
           S.draft.privacy = t.value;
           pnl.querySelectorAll("[data-pg]").forEach((li) => li.classList.toggle("on", li.dataset.pg === t.value));
         }
-        else if (k === "center") {
-          const txt = pnl.querySelector("#" + ID + "-centertext");
-          u.centerOther = t.value === OTHER;
-          S.draft.center = u.centerOther ? (txt ? txt.value.trim() : "") : t.value;
-          if (txt) txt.hidden = !u.centerOther;
-          S.draft.unit = ""; u.unitOther = false;
-          pnl.querySelector("[data-unitwrap]").innerHTML = unitFieldHtml();
-          if (u.centerOther && txt) txt.focus();
-        } else if (k === "unit") {
-          const txt = pnl.querySelector("#" + ID + "-unittext");
-          u.unitOther = t.value === OTHER;
-          S.draft.unit = u.unitOther ? (txt ? txt.value.trim() : "") : t.value;
-          if (txt) { txt.hidden = !u.unitOther; if (u.unitOther) txt.focus(); }
-          pnl.querySelector("[data-unitwrap] .aia-lbl").innerHTML = "Yksikkö" + (unitRequired(S.draft) ? " " + reqMark : "");
-        } else if (t.tagName === "SELECT") S.draft[k] = t.value;
+        else if (t.tagName === "SELECT") S.draft[k] = t.value;
         else return;
         touch(); return;
       }
